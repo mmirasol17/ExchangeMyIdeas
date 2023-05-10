@@ -1,0 +1,21 @@
+CREATE DATABASE blog;
+
+CREATE TABLE blog_posts (
+	post_id varchar(36) NOT NULL,
+	author_name text NOT NULL,
+	content text NOT NULL,
+	title text NOT NULL,
+	PRIMARY KEY (post_id)
+);
+
+CREATE TABLE blog_replies (
+	reply_id varchar(36) NOT NULL,
+	blog_post_id varchar(36) NOT NULL,
+	author_name text NOT NULL,
+	content text NOT NULL,
+	PRIMARY KEY (reply_id),
+	FOREIGN KEY (blog_post_id)
+		REFERENCES blog_posts(post_id)
+		ON DELETE CASCADE
+);
+

@@ -6,6 +6,10 @@
   justify-content: space-between;
 }
 
+.container > .header > .title {
+  padding-left: 10px;
+}
+
 .container > .header > #go_to_posts {
   user-select: none;
   cursor: pointer;

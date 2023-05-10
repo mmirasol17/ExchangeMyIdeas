@@ -1,0 +1,79 @@
+.container > .header {
+  border: 1px solid black;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.container > .header > #go_to_posts {
+  user-select: none;
+  cursor: pointer;
+  height: -webkit-fill-available;
+  padding: 5px 10px;
+  border-left: 1px solid black;
+  margin-left: auto;
+}
+
+.container > .post {
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+  padding: 10px;
+}
+
+.container > .post > .content {
+  border: 1px solid black;
+  display: flex;
+  flex-direction: column;
+  padding-top: 3px;
+  padding-left: 10px;
+}
+
+.container > .post > .content > div:not(:last-child) {
+  padding-top: 10px;
+  padding-bottom: 4px;
+}
+
+.container > .post > .content > *:not(:last-child) {
+  margin-right: 15px;
+}
+
+.container > .post > .content > .reply {
+  user-select: none;
+  cursor: pointer;
+  margin-top: 15px;
+  margin-left: auto;
+  padding: 5px;
+  border-top: 1px solid black;
+  border-left: 1px solid black;
+}
+
+.container > .post > .reply {
+  display: flex;
+  flex-direction: column;
+  padding-top: 5px;
+  padding-left: 10px;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+}
+
+.container > .post > .reply > *:not(:last-child) {
+  margin-right: 10px;
+}
+
+.container > .post > .reply > div:not(:last-child) {
+  padding-top: 10px;
+  padding-bottom: 4px;
+}
+
+.container > .post > .reply > .post_reply {
+  user-select: none;
+  cursor: pointer;
+  margin-top: 15px;
+  margin-left: auto;
+  padding: 5px;
+  border-top: 1px solid black;
+  border-left: 1px solid black;
+}

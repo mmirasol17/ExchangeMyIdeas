@@ -1,5 +1,3 @@
-CREATE DATABASE blog;
-
 CREATE TABLE blog_posts (
 	post_id varchar(36) NOT NULL,
 	author_name text NOT NULL,
@@ -18,4 +16,3 @@ CREATE TABLE blog_replies (
 		REFERENCES blog_posts(post_id)
 		ON DELETE CASCADE
 );
-

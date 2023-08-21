@@ -1,83 +1,114 @@
-.container > .header {
-  border: 1px solid black;
-  height: 30px;
+/* Universal button styling */
+.button {
+  border-radius: 10px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: #0069d9;
+  box-shadow: 0 0 5px #0069d9;
+}
+
+
+/* Reset some default styles */
+body, h1, h2, h3, p {
+  margin: 0;
+  padding: 0;
+}
+
+/* Basic styling for the container */
+.container {
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f0f0f0;
+}
+
+/* Header styling */
+.header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.container > .header > .title {
-  padding-left: 10px;
+#go_to_posts {
+  /* padding: 5px 10px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer; */
 }
 
-.container > .header > #go_to_posts {
-  user-select: none;
-  cursor: pointer;
-  height: -webkit-fill-available;
-  padding: 5px 10px;
-  border-left: 1px solid black;
-  margin-left: auto;
+/* Form styling */
+.post {
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  padding: 20px;
+  background-color: #fff;
 }
 
-.container > .post {
-  border-left: 1px solid black;
-  border-right: 1px solid black;
-  border-bottom: 1px solid black;
+.post .content {
+  margin-bottom: 20px;
+}
+
+.post .title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.post input[type="text"],
+.post textarea {
+  width: 100%;
   padding: 10px;
+  border: 1px solid #ccc;
 }
 
-.container > .post > .content {
-  border: 1px solid black;
-  display: flex;
-  flex-direction: column;
-  padding-top: 3px;
-  padding-left: 10px;
+.post .author {
+  font-size: 14px;
+  color: #777;
+  margin-top: 5px;
 }
 
-.container > .post > .content > div:not(:last-child) {
-  padding-top: 10px;
-  padding-bottom: 4px;
-}
-
-.container > .post > .content > *:not(:last-child) {
-  margin-right: 15px;
-}
-
-.container > .post > .content > .reply {
-  user-select: none;
+.post .reply {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
   cursor: pointer;
-  margin-top: 15px;
-  margin-left: auto;
-  padding: 5px;
-  border-top: 1px solid black;
-  border-left: 1px solid black;
+  text-align: center;
 }
 
-.container > .post > .reply {
-  display: flex;
-  flex-direction: column;
-  padding-top: 5px;
-  padding-left: 10px;
-  border-left: 1px solid black;
-  border-right: 1px solid black;
-  border-bottom: 1px solid black;
+/* Dark theme */
+body.dark {
+  background-color: #333;
+  color: #fff;
 }
 
-.container > .post > .reply > *:not(:last-child) {
-  margin-right: 10px;
+.container.dark {
+  background-color: #444;
+  color: #fff;
+  border: 1px solid #555;
 }
 
-.container > .post > .reply > div:not(:last-child) {
-  padding-top: 10px;
-  padding-bottom: 4px;
+.post.dark {
+  border-color: #666;
+  background-color: #555;
+  color: #fff;
 }
 
-.container > .post > .reply > .post_reply {
-  user-select: none;
-  cursor: pointer;
-  margin-top: 15px;
-  margin-left: auto;
-  padding: 5px;
-  border-top: 1px solid black;
-  border-left: 1px solid black;
+.post input[type="text"].dark,
+.post textarea.dark {
+  border: 1px solid #666;
+  background-color: #666;
+  color: #fff;
 }
+
+.post .reply.dark {
+  background-color: #007bff;
+  color: #fff;
+}
+

@@ -34,39 +34,41 @@ window.addEventListener("load", () => {
 
       replyFormOpen = true;
 
-      // Create elements with class names
+      // message input
       const inputContentTitle = document.createElement("div");
-      inputContentTitle.className = "reply-content-title";
+      inputContentTitle.className = "reply-label";
       inputContentTitle.innerText = "Message";
-
       const inputContent = document.createElement("textarea");
       inputContent.name = "reply_content";
-      inputContent.className = "reply-content";
+      inputContent.className = "reply-input";
+      inputContent.placeholder = "What do you think about this post? 🤔";
 
+      // author input
       const authorContentTitle = document.createElement("div");
-      authorContentTitle.className = "reply-content-author";
-      authorContentTitle.innerText = "Name";
-
+      authorContentTitle.className = "reply-label";
+      authorContentTitle.innerText = "Name (optional)";
       const authorContent = document.createElement("input");
       authorContent.name = "reply_author";
-      authorContent.className = "reply-author";
+      authorContent.className = "reply-input";
+      authorContent.placeholder = "How you'd like to be known as 👤";
 
-      const postCancelReplyButtonInvisibleInput = document.createElement("input");
-      postCancelReplyButtonInvisibleInput.type = "submit";
-      postCancelReplyButtonInvisibleInput.style.display = "none";
-
-      const postReplyButton = document.createElement("button");
-      postReplyButton.className = "post-reply";
+      // post reply button
+      const postReplyButton = document.createElement("div");
+      postReplyButton.className = "button";
       postReplyButton.innerText = "Post";
-
-      const postCancelReplyButton = document.createElement("button");
-      postCancelReplyButton.className = "post-cancel-reply";
-      postCancelReplyButton.innerText = "Cancel";
-
       const postReplyButtonInvisibleInput = document.createElement("input");
       postReplyButtonInvisibleInput.type = "submit";
       postReplyButtonInvisibleInput.style.display = "none";
 
+      // cancel reply button
+      const postCancelReplyButton = document.createElement("div");
+      postCancelReplyButton.className = "button";
+      postCancelReplyButton.innerText = "Cancel";
+      const postCancelReplyButtonInvisibleInput = document.createElement("input");
+      postCancelReplyButtonInvisibleInput.type = "submit";
+      postCancelReplyButtonInvisibleInput.style.display = "none";
+
+      // post id of the post that the user is replying to
       const postIdInput = document.createElement("input");
       postIdInput.type = "hidden";
       postIdInput.name = "blog_post_id";
@@ -74,13 +76,13 @@ window.addEventListener("load", () => {
 
       // Create a container for the reply buttons
       const replyButtonsContainer = document.createElement("div");
-      replyButtonsContainer.className = "reply-buttons";
+      replyButtonsContainer.className = "reply-form-footer";
       replyButtonsContainer.appendChild(postCancelReplyButton);
       replyButtonsContainer.appendChild(postReplyButton);
 
       // create the reply form with all the elements
       const reply = document.createElement("form");
-      reply.className = "reply";
+      reply.className = "reply-form";
       reply.method = "POST";
       reply.action = "./index.php";
 
@@ -88,12 +90,15 @@ window.addEventListener("load", () => {
       postCancelReplyButton.addEventListener("click", () => {
         reply.remove();
         replyFormOpen = false;
+        // Add the following line to reattach the replyListener after canceling
         replyButton.addEventListener("click", replyListener);
       });
 
       // add listener to the reply form to submit the form when the user clicks the post reply button
       postReplyButton.addEventListener("click", () => {
         reply.submit();
+        // Add the following line to remove the event listener after posting a reply
+        replyButton.removeEventListener("click", replyListener);
       });
 
       // append all the elements to the reply form
@@ -108,9 +113,6 @@ window.addEventListener("load", () => {
 
       // insert the reply form before the existing replies
       post.insertBefore(reply, replies);
-
-      // remove the listener so the user can't click the reply button again
-      replyButton.addEventListener("click", replyListener);
     }
 
     // add listener to the reply button to create the reply form when the user clicks the reply button

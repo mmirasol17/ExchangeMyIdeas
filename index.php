@@ -5,8 +5,8 @@
     // get the blog info from the submitted form (replying to a blog)
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $blog_post_id = $_POST['blog_post_id'];
-      $reply_author = $_POST['reply_author'];
       $reply_content = $_POST['reply_content'];
+      $reply_author = !empty($_POST['reply_author']) ? $_POST['reply_author'] : "Anonymous";
 
       // if all reply data is set and not empty, insert into the db
       if (isset($blog_post_id) &&
@@ -16,14 +16,17 @@
           !empty($reply_author) &&
           !empty($reply_content)
       ) {
-        // insert the reply into the db
         $sql = "
           INSERT INTO blog_replies
-            VALUES (uuid(), '" . $blog_post_id . "', '" . $reply_author . "', '" . $reply_content . "')
+            VALUES (uuid(), :blog_post_id, :reply_author, :reply_content, NOW())
         ";
 
-        // execute the sql query
-        $conn->exec($sql);
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':blog_post_id', $blog_post_id);
+        $stmt->bindParam(':reply_author', $reply_author);
+        $stmt->bindParam(':reply_content', $reply_content);
+
+        $stmt->execute();
         header("Location: ./index.php");
         die();
       }
@@ -64,7 +67,7 @@
 
         // for the search bar, fetch all posts based on title, content, or author name with the keyword
         $statement = "
-          SELECT post_id, author_name, content, title
+          SELECT post_id, author_name, content, title, date_posted
           FROM blog_posts
         ";
 
@@ -82,12 +85,13 @@
 
         // get all the posts from the db and display them
         while ($postsRow = $query->fetch(PDO::FETCH_ASSOC)) {
-          echo "<div class=\"post\"" . $postsRow["post_id"] . "\">";
+          echo "<div class=\"post\" id=\"" . $postsRow["post_id"] . "\">";
           echo "  <div class=\"content\">";
+          echo "    <div class=\"date\">" . date("d M Y", strtotime($postsRow["date_posted"])) . "</div>";
           echo "    <div class=\"title\">" . $postsRow["title"] . "</div>";
-          echo "    <div class=\"body\">" . $postsRow["content"] . "</div>";
+          echo "    <div class=\"body\">" . nl2br($postsRow["content"]) . "</div>";
           echo "    <div class=\"footer\">";
-          echo "      <div class=\"author\"><span>" . $postsRow["author_name"] . "</span></div>";
+          echo "      <div class=\"author\"><span>👤 " . $postsRow["author_name"] . "</span></div>";
           echo "      <div id=\"reply\" class=\"button\">Reply</div>";
           echo "    </div>";
           echo "  </div>";
@@ -95,7 +99,7 @@
 
           // get all the replies for the current post and display them
           $repliesStatement = $conn->prepare("
-            SELECT author_name, content
+            SELECT author_name, content, date_posted
             FROM blog_replies
             WHERE blog_post_id = \"" . $postsRow["post_id"] . "\"
           ");
@@ -104,8 +108,11 @@
           // post the reply info for the current post
           while ($repliesRow = $repliesStatement->fetch(PDO::FETCH_ASSOC)) {
             echo "    <div id=\"reply\" class=\"reply\">";
-            echo "      <div class=\"body\">" . $repliesRow["content"] . "</div>";
-            echo "      <div class=\"author\"><span>" . $repliesRow["author_name"] . "</span></div>";
+            echo "      <div class=\"content\">";
+            echo "        <div class=\"date\">" . date("d M Y", strtotime($repliesRow["date_posted"])) . "</div>";
+            echo "        <div class=\"body\">" . nl2br($repliesRow["content"]) . "</div>";
+            echo "        <div class=\"author\"><span>👤 " . $repliesRow["author_name"] . "</span></div>";
+            echo "      </div>";
             echo "    </div>";
           }
 

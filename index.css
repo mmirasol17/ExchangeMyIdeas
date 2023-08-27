@@ -1,22 +1,36 @@
+:root {
+  --pistachio: #d1ddd8;
+  --turquoise: #85b8cb;
+  --cerulean: #1d6a96;
+  --spruce: #283b42;
+}
+
 /* Universal button styling */
 .button {
   border-radius: 10px;
-  padding: 10px 20px;
-  background-color: #007bff;
+  border: none;
+  padding: 15px 30px;
+  background-color: var(--spruce);
   color: #fff;
   cursor: pointer;
+  text-align: center;
+  font-weight: bold;
 }
 
 .button:hover {
-  background-color: #0069d9;
-  box-shadow: 0 0 5px #0069d9;
+  opacity: 0.8;
+  box-shadow: 0 0 10px darkgray;
 }
 
-
 /* Reset some default styles */
-body, h1, h2, h3, p {
+body,
+h1,
+h2,
+h3,
+p {
   margin: 0;
   padding: 0;
+  background-color: lightgray;
 }
 
 /* Basic styling for the container */
@@ -25,7 +39,6 @@ body, h1, h2, h3, p {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-  background-color: #f0f0f0;
 }
 
 /* Header styling */
@@ -41,21 +54,32 @@ body, h1, h2, h3, p {
   border-radius: 10px;
   padding: 10px;
   width: 80%;
+  border: 2px solid white;
+  font-size: 20px;
 }
-
 #search:hover {
   outline: none;
-  box-shadow: 0 0 5px black;
+  border: 2px solid var(--spruce);
+}
+
+#search:focus {
+  outline: none;
+  border: 2px solid var(--spruce);
+}
+
+.date {
+  font-size: 20px;
+  color: #777;
+  margin-bottom: 10px;
 }
 
 /* Post styling */
 .post {
-  box-shadow: 0 0 5px #ccc;
+  box-shadow: 0 0 20px darkgray;
   border-radius: 30px;
-  border: 1px solid #ccc;
   margin-bottom: 20px;
   padding: 30px;
-  background-color: #fff;
+  background-color: white;
 }
 
 .post .content {
@@ -63,24 +87,19 @@ body, h1, h2, h3, p {
 }
 
 .post .title {
-  font-size: 18px;
+  font-size: 30px;
   font-weight: bold;
+  margin-bottom: 20px;
 }
 
 .post .body {
-  font-size: 14px;
-  margin-top: 5px;
+  font-size: 20px;
+  margin-bottom: 20px;
 }
 
 .post .author {
-  font-size: 12px;
+  font-size: 20px;
   color: #777;
-}
-
-.post .replies {
-  border-top: 1px solid #ccc;
-  margin-top: 10px;
-  padding-top: 10px;
 }
 
 .post .footer {
@@ -93,156 +112,127 @@ body, h1, h2, h3, p {
 
 /* Reply styling */
 .reply {
-  box-shadow: 0 0 10px #ccc;
-  border-radius: 20px;
-  margin-top: 10px;
-  border: 1px solid #ddd;
-  margin-bottom: 10px;
-  padding: 15px;
-  background-color: #f9f9f9;
+  border-top: 1px solid #cac8c8;
+  padding: 20px 20px 10px 20px;
+  background-color: white;
+}
+
+.reply .content {
+  margin-left: 30px;
 }
 
 .reply .body {
-  font-size: 14px;
+  font-size: 20px;
+  margin-bottom: 5px;
 }
 
 .reply .author {
-  font-size: 12px;
+  font-size: 20px;
   color: #777;
-  margin-top: 5px;
 }
 
-/* Dark theme */
-body.dark {
-  background-color: #333;
-  color: #fff;
+/* reply form styling */
+.reply-form {
+  box-shadow: 0 0 10px darkgray;
+  border: 1px solid #cac8c8;
+  border-radius: 30px;
+  margin: 20px 0;
+  padding: 30px;
+  background-color: lightgray;
 }
 
-.container.dark {
-  background-color: #444;
-  color: #fff;
-  border: 1px solid #555;
+.reply-label {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+.reply-input {
+  border-radius: 10px;
+  width: 97%;
+  max-width: 97%;
+  padding: 8px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  border: 2px solid white;
+  margin-bottom: 10px;
+}
+.reply-input:hover,
+.reply-input:focus {
+  outline: none;
+  border: 2px solid var(--spruce);
 }
 
-.post.dark {
-  border-color: #666;
-  background-color: #555;
-  color: #fff;
-}
-
-.reply.dark {
-  border-color: #666;
-  background-color: #666;
-  color: #fff;
-}
-
-/* Media queries for smaller screens */
-@media only screen and (max-width: 600px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 10px;
-  }
-
-  #search {
-    margin: 10px 0;
-    width: 100%;
-  }
-
-  .post {
-    padding: 20px;
-    margin-bottom: 15px;
-  }
-
-  .post .title {
-    font-size: 16px;
-  }
-
-  .post .body {
-    font-size: 12px;
-  }
-
-  .post .author {
-    font-size: 10px;
-  }
-
-  .reply {
-    padding: 10px;
-    margin-bottom: 5px;
-  }
-
-  .reply .body {
-    font-size: 12px;
-  }
-
-  .reply .author {
-    font-size: 10px;
-  }
-}
-
-/* Dark theme adjustments for smaller screens */
-@media only screen and (max-width: 600px) {
-  body.dark {
-    background-color: #000;
-    color: #ccc;
-  }
-
-  .container.dark {
-    background-color: #111;
-    color: #ccc;
-  }
-
-  .post.dark {
-    border-color: #333;
-    background-color: #222;
-    color: #ccc;
-  }
-
-  .reply.dark {
-    border-color: #333;
-    background-color: #333;
-    color: #ccc;
-  }
-}
-
-/* Align items between the reply buttons */
-.reply-buttons {
+.reply-form-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
 }
 
-/* Styling for the reply form elements */
-.reply-content-title {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
+/* Media queries for smaller screens */
+@media only screen and (max-width: 600px) {
+  body,
+  h1,
+  h2,
+  h3,
+  p {
+    font-size: 16px; /* Adjust font size for readability */
+  }
 
-.reply-content,
-.reply-author {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
+  .container {
+    padding: 10px; /* Reduce padding for smaller container */
+  }
 
-/* Styling for the reply buttons */
-.post-reply,
-.post-cancel-reply {
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
+  .button {
+    padding: 10px 20px; /* Adjust padding for smaller buttons */
+    font-size: 16px; /* Adjust font size for smaller screens */
+  }
 
-.post-reply:hover,
-.post-cancel-reply:hover {
-  background-color: #0056b3;
+  #search {
+    width: 100%; /* Full width for search input on small screens */
+    margin: 10px 0; /* Adjust margin for spacing */
+  }
+
+  .post {
+    padding: 20px; /* Reduce padding for posts */
+  }
+
+  .post .title {
+    font-size: 24px; /* Slightly smaller title font size */
+  }
+
+  .post .body {
+    font-size: 16px; /* Adjust body font size for readability */
+  }
+
+  .post .author {
+    font-size: 16px; /* Adjust author font size for readability */
+  }
+
+  .post .footer {
+    flex-direction: column; /* Stack buttons vertically on small screens */
+    align-items: flex-end; /* Align buttons to the right */
+    margin-top: 5px; /* Reduce margin for spacing */
+  }
+
+  .reply-form {
+    padding: 20px; /* Reduce padding for reply form */
+  }
+
+  .reply-label {
+    font-size: 16px; /* Adjust label font size for readability */
+  }
+
+  .reply-input {
+    font-size: 16px; /* Adjust input font size for readability */
+    margin-bottom: 5px; /* Reduce margin for spacing */
+  }
+
+  .reply-form-footer {
+    flex-direction: column; /* Stack buttons vertically on small screens */
+    align-items: flex-end; /* Align buttons to the right */
+    margin-top: 5px; /* Reduce margin for spacing */
+  }
 }
 
 /* Styling for invisible inputs */

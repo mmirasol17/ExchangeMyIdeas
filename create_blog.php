@@ -79,7 +79,7 @@ try {
       <div class="label">Content</div>
       <textarea class="content" name="content" placeholder="Talk about anything you'd like to share 💡"></textarea>
       <div class="label">Name (optional)</div>
-      <input class="author" name="author" placeholder="How you'd like to be known as 👤" />
+      <input class="author" name="author" placeholder="How would you like to be known? 👤" />
       <input type="submit" style="display: none;" />
       <div class="reply button" onClick="document.forms['post'].submit();">Post Blog</div>
     </form>

@@ -40,7 +40,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
-  <title>CougarBlogs</title>
+  <title>ExchangeMyIdeas</title>
   <link rel="stylesheet" href="./index.css" />
   <script src="./index.js"></script>
 </head>
@@ -123,8 +123,20 @@
         echo "Error: " . $e->getMessage();
       }
     ?>
-
   </div>
+
+  <!-- site footer -->
+  <div class="site-footer">
+    <div class="developer">Developed by:&nbsp;
+      <!-- show developer's with links to linkedin (don't put a space after each comma) -->
+      <a href="https://www.linkedin.com/in/marin-mirasol/" target="_blank" class="footer-link">Marin Mirasol</a>,
+      <a href="https://www.linkedin.com/in/amer-yono/" target="_blank" class="footer-link">Amer (Junior) Yono</a>, and
+      <a href="https://www.linkedin.com/in/corey-taylor-9a9bb1209/" target="_blank" class="footer-link">Corey Taylor</a>.
+    </div>
+    <!-- show copyright info -->
+    <div class="copy">&copy; <?php echo date("Y"); ?> ExchangeMyIdeas.online</div>
+  </div>
+
 </body>
 
 </html>

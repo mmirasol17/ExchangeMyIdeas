@@ -123,7 +123,7 @@ p {
 
 .reply .body {
   font-size: 20px;
-  margin-bottom: 5px;
+  margin-bottom: 15px;
 }
 
 .reply .author {
@@ -167,6 +167,32 @@ p {
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
+}
+
+/* footer styling, make it a banner with a --spruce color bg and bold white text centered in the middle */
+.site-footer {
+  background-color: var(--spruce);
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.developer {
+  margin-bottom: 20px;
+}
+
+.footer-link {
+  color: var(--turquoise);
+  text-decoration: underline;
+}
+.footer-link:hover {
+  opacity: 0.7;
+}
+
+.copy {
+  font-size: 20px;
+  font-weight: bold;
 }
 
 /* Media queries for smaller screens */

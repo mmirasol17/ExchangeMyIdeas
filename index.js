@@ -50,7 +50,7 @@ window.addEventListener("load", () => {
       const authorContent = document.createElement("input");
       authorContent.name = "reply_author";
       authorContent.className = "reply-input";
-      authorContent.placeholder = "How you'd like to be known as 👤";
+      authorContent.placeholder = "How would you like to be known? 👤";
 
       // post reply button
       const postReplyButton = document.createElement("div");

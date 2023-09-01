@@ -1,16 +1,9 @@
-:root {
-  --pistachio: #d1ddd8;
-  --turquoise: #85b8cb;
-  --cerulean: #1d6a96;
-  --spruce: #283b42;
-}
-
 /* Universal button styling */
 .button {
   border-radius: 10px;
   border: none;
   padding: 15px 30px;
-  background-color: var(--spruce);
+  background-color: #283b42;
   color: #fff;
   cursor: pointer;
   text-align: center;
@@ -81,7 +74,7 @@ p {
 .post .title:hover,
 .post .title:focus {
   outline: none;
-  border-color: var(--spruce);
+  border-color: #283b42;
 }
 
 .post .content {
@@ -94,12 +87,12 @@ p {
   padding: 5px 10px;
   width: 96%;
   max-width: 96%;
-  min-height: 33svh;
+  min-height: 33vh;
 }
 .post .content:hover,
 .post .content:focus {
   outline: none;
-  border-color: var(--spruce);
+  border-color: #283b42;
 }
 
 .post .author {
@@ -115,7 +108,7 @@ p {
 .post .author:hover,
 .post .author:focus {
   outline: none;
-  border-color: var(--spruce);
+  border-color: #283b42;
 }
 
 /* Dark theme */

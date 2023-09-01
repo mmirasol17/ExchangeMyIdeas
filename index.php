@@ -71,18 +71,19 @@
           FROM blog_posts
         ";
 
+        // get search value and prepare a query if set
         $search = $_GET['search'];
         if (isset($search) && !empty($search)) {
-          $statement .= "
-            WHERE title LIKE \"%" . $search . "%\"
-              OR content LIKE \"%" . $search . "%\"
-              OR author_name LIKE \"%" . $search . "%\"
-          ";
+            $statement .= "
+                WHERE title LIKE \"%" . $search . "%\"
+                OR content LIKE \"%" . $search . "%\"
+                OR author_name LIKE \"%" . $search . "%\"
+            ";
         }
-        // execute the sql query
+        // execute the query
         $query = $conn->prepare($statement);
         $query->execute();
-
+                
         // get all the posts from the db and display them
         while ($postsRow = $query->fetch(PDO::FETCH_ASSOC)) {
           echo "<div class=\"post\" id=\"" . $postsRow["post_id"] . "\">";

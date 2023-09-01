@@ -1,16 +1,9 @@
-:root {
-  --pistachio: #d1ddd8;
-  --turquoise: #85b8cb;
-  --cerulean: #1d6a96;
-  --spruce: #283b42;
-}
-
 /* Universal button styling */
 .button {
   border-radius: 10px;
   border: none;
   padding: 15px 30px;
-  background-color: var(--spruce);
+  background-color: #283b42;
   color: #fff;
   cursor: pointer;
   text-align: center;
@@ -59,12 +52,12 @@ p {
 }
 #search:hover {
   outline: none;
-  border: 2px solid var(--spruce);
+  border: 2px solid #283b42;
 }
 
 #search:focus {
   outline: none;
-  border: 2px solid var(--spruce);
+  border: 2px solid #283b42;
 }
 
 .date {
@@ -159,7 +152,7 @@ p {
 .reply-input:hover,
 .reply-input:focus {
   outline: none;
-  border: 2px solid var(--spruce);
+  border: 2px solid #283b42;
 }
 
 .reply-form-footer {
@@ -171,7 +164,7 @@ p {
 
 /* footer styling, make it a banner with a --spruce color bg and bold white text centered in the middle */
 .site-footer {
-  background-color: var(--spruce);
+  background-color: #283b42;
   color: white;
   text-align: center;
   padding: 20px;
@@ -183,7 +176,7 @@ p {
 }
 
 .footer-link {
-  color: var(--turquoise);
+  color: #85b8cb;
   text-decoration: underline;
 }
 .footer-link:hover {
@@ -193,72 +186,6 @@ p {
 .copy {
   font-size: 20px;
   font-weight: bold;
-}
-
-/* Media queries for smaller screens */
-@media only screen and (max-width: 600px) {
-  body,
-  h1,
-  h2,
-  h3,
-  p {
-    font-size: 16px; /* Adjust font size for readability */
-  }
-
-  .container {
-    padding: 10px; /* Reduce padding for smaller container */
-  }
-
-  .button {
-    padding: 10px 20px; /* Adjust padding for smaller buttons */
-    font-size: 16px; /* Adjust font size for smaller screens */
-  }
-
-  #search {
-    width: 100%; /* Full width for search input on small screens */
-    margin: 10px 0; /* Adjust margin for spacing */
-  }
-
-  .post {
-    padding: 20px; /* Reduce padding for posts */
-  }
-
-  .post .title {
-    font-size: 24px; /* Slightly smaller title font size */
-  }
-
-  .post .body {
-    font-size: 16px; /* Adjust body font size for readability */
-  }
-
-  .post .author {
-    font-size: 16px; /* Adjust author font size for readability */
-  }
-
-  .post .footer {
-    flex-direction: column; /* Stack buttons vertically on small screens */
-    align-items: flex-end; /* Align buttons to the right */
-    margin-top: 5px; /* Reduce margin for spacing */
-  }
-
-  .reply-form {
-    padding: 20px; /* Reduce padding for reply form */
-  }
-
-  .reply-label {
-    font-size: 16px; /* Adjust label font size for readability */
-  }
-
-  .reply-input {
-    font-size: 16px; /* Adjust input font size for readability */
-    margin-bottom: 5px; /* Reduce margin for spacing */
-  }
-
-  .reply-form-footer {
-    flex-direction: column; /* Stack buttons vertically on small screens */
-    align-items: flex-end; /* Align buttons to the right */
-    margin-top: 5px; /* Reduce margin for spacing */
-  }
 }
 
 /* Styling for invisible inputs */

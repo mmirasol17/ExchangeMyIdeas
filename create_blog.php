@@ -31,7 +31,7 @@ try {
 <html>
 
 <head>
-  <title>CougarBlogs</title>
+  <title>ExchangeMyIdeas - Write a Blog</title>
   <link rel="stylesheet" href="./create_blog.css" />
   <script src="./create_blog.js"></script>
 </head>

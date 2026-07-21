@@ -1,0 +1,430 @@
+/*
+ * ExchangeMyIdeas — shared stylesheet
+ *
+ * Design tokens mirror marinmirasol.com (TailwindCSS palette) so this
+ * subdomain reads as part of the same site. Hand-written CSS rather than
+ * Tailwind because this app is served by PHP with no build step.
+ */
+
+:root {
+  /* Tailwind palette values used by the portfolio */
+  --gray-200: #e5e7eb;
+  --gray-400: #9ca3af;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --blue-300: #93c5fd;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+
+  --card: linear-gradient(to bottom right, var(--gray-400), var(--gray-700));
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  --radius: 1rem;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font);
+  color: #fff;
+  /* Matches the portfolio's .section-primary gradient */
+  background: linear-gradient(to bottom, var(--blue-800), var(--blue-900) 40%, var(--gray-900));
+  background-attachment: fixed;
+}
+
+/* ---------- Navbar (portfolio .navbar) ---------- */
+
+.navbar {
+  background-color: var(--gray-800);
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-2xl);
+}
+
+.navbar .brand {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navbar .brand span {
+  color: var(--blue-300);
+}
+
+.navbar .home-link {
+  color: var(--gray-200);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.navbar .home-link:hover {
+  color: var(--blue-300);
+}
+
+/* ---------- Layout ---------- */
+
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  flex: 1;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 0.5);
+}
+
+.page-subtitle {
+  color: var(--blue-300);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+/* ---------- Buttons (portfolio project-card buttons) ---------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  background-color: var(--blue-500);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 300ms, background-color 300ms;
+}
+
+.button:hover {
+  background-color: var(--blue-600);
+  transform: scale(1.05);
+}
+
+.button.secondary {
+  background-color: var(--gray-700);
+}
+
+.button.secondary:hover {
+  background-color: #4b5563;
+}
+
+/* ---------- Search ---------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+#search {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.1);
+  border: 2px solid rgb(255 255 255 / 0.2);
+}
+
+#search::placeholder {
+  color: var(--gray-200);
+  opacity: 0.7;
+}
+
+#search:hover,
+#search:focus {
+  outline: none;
+  border-color: var(--blue-300);
+}
+
+/* ---------- Posts (portfolio project cards) ---------- */
+
+.post {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2xl);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: transform 300ms;
+}
+
+.post:hover {
+  transform: scale(1.01);
+}
+
+.post > .content {
+  margin-bottom: 0.75rem;
+}
+
+.date {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--blue-300);
+  margin-bottom: 0.375rem;
+}
+
+.post .title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.post .body {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--gray-200);
+  margin-bottom: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.post .footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Author chip, styled like the portfolio's technology pills */
+.author span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: rgb(37 99 235 / 0.8);
+  color: #fff;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+.empty-state {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2xl);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--gray-200);
+}
+
+/* ---------- Replies ---------- */
+
+.replies:not(:empty) {
+  margin-top: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.2);
+  padding-top: 0.5rem;
+}
+
+.reply {
+  padding: 0.75rem 0 0.25rem 1rem;
+  border-left: 2px solid rgb(255 255 255 / 0.2);
+  margin-top: 0.75rem;
+}
+
+.reply .body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--gray-200);
+  margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Reply form (markup built in index.js) ---------- */
+
+.reply-form {
+  background-color: rgb(17 24 39 / 0.35);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 0.75rem;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+.reply-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.375rem;
+}
+
+.reply-input {
+  display: block;
+  width: 100%;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.1);
+  border: 2px solid rgb(255 255 255 / 0.2);
+}
+
+.reply-input::placeholder {
+  color: var(--gray-200);
+  opacity: 0.7;
+}
+
+.reply-input:hover,
+.reply-input:focus {
+  outline: none;
+  border-color: var(--blue-300);
+}
+
+textarea.reply-input {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.reply-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+/* ---------- Create-post form ---------- */
+
+.post-form {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2xl);
+  padding: 1.5rem;
+}
+
+.post-form .label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.375rem;
+}
+
+.post-form .field {
+  display: block;
+  width: 100%;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1.25rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.1);
+  border: 2px solid rgb(255 255 255 / 0.2);
+}
+
+.post-form .field::placeholder {
+  color: var(--gray-200);
+  opacity: 0.7;
+}
+
+.post-form .field:hover,
+.post-form .field:focus {
+  outline: none;
+  border-color: var(--blue-300);
+}
+
+.post-form textarea.field {
+  min-height: 33vh;
+  resize: vertical;
+}
+
+.form-error {
+  background-color: rgb(239 68 68 / 0.15);
+  border: 1px solid rgb(248 113 113 / 0.6);
+  color: #fecaca;
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ---------- Footer (portfolio footer) ---------- */
+
+.site-footer {
+  background-color: var(--gray-800);
+  color: #fff;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.developer {
+  margin-bottom: 0.5rem;
+  color: var(--gray-200);
+}
+
+.footer-link {
+  color: var(--blue-300);
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+.copy {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+}
+
+/* Hidden native submit inputs, triggered by the styled buttons */
+input[type="submit"] {
+  display: none;
+}
+
+/* Match the portfolio: no hover scaling on touch devices */
+@media (hover: none) {
+  .post:hover,
+  .button:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+}

@@ -1,143 +1,153 @@
 <?php
-  try {
-    require_once("./config.php");
+require_once("./config.php");
 
-    // get the blog info from the submitted form (replying to a blog)
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-      $blog_post_id = $_POST['blog_post_id'];
-      $reply_content = $_POST['reply_content'];
-      $reply_author = !empty($_POST['reply_author']) ? $_POST['reply_author'] : "Anonymous";
+// Handle a reply submission, then redirect so a refresh doesn't repost.
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  $blog_post_id = trim($_POST['blog_post_id'] ?? '');
+  $reply_content = trim($_POST['reply_content'] ?? '');
+  $reply_author = trim($_POST['reply_author'] ?? '');
+  $reply_author = $reply_author !== '' ? $reply_author : "Anonymous";
 
-      // if all reply data is set and not empty, insert into the db
-      if (isset($blog_post_id) &&
-          isset($reply_author) &&
-          isset($reply_content) &&
-          !empty($blog_post_id) &&
-          !empty($reply_author) &&
-          !empty($reply_content)
-      ) {
-        $sql = "
-          INSERT INTO blog_replies
-            VALUES (uuid(), :blog_post_id, :reply_author, :reply_content, NOW())
-        ";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':blog_post_id', $blog_post_id);
-        $stmt->bindParam(':reply_author', $reply_author);
-        $stmt->bindParam(':reply_content', $reply_content);
-
-        $stmt->execute();
-        header("Location: ./index.php");
-        die();
-      }
-    }
-  } catch (PDOException $e) {
-    echo "Error: " . $e->getMessage();
+  if ($blog_post_id !== '' && $reply_content !== '') {
+    $stmt = $conn->prepare("
+      INSERT INTO blog_replies (reply_id, blog_post_id, author_name, content, date_posted)
+      VALUES (uuid(), :blog_post_id, :reply_author, :reply_content, NOW())
+    ");
+    $stmt->execute([
+      ':blog_post_id' => $blog_post_id,
+      ':reply_author' => $reply_author,
+      ':reply_content' => $reply_content,
+    ]);
   }
-?>
 
+  header("Location: ./index.php");
+  exit;
+}
+
+$search = trim($_GET['search'] ?? '');
+
+// Fetch posts, optionally filtered by the search term.
+// Bound as a parameter -- the original built this by string concatenation,
+// which allowed arbitrary SQL through the search box.
+if ($search !== '') {
+  $query = $conn->prepare("
+    SELECT post_id, author_name, content, title, date_posted
+    FROM blog_posts
+    WHERE title LIKE :search
+       OR content LIKE :search
+       OR author_name LIKE :search
+    ORDER BY date_posted DESC
+  ");
+  $query->execute([':search' => '%' . $search . '%']);
+} else {
+  $query = $conn->prepare("
+    SELECT post_id, author_name, content, title, date_posted
+    FROM blog_posts
+    ORDER BY date_posted DESC
+  ");
+  $query->execute();
+}
+
+$posts = $query->fetchAll(PDO::FETCH_ASSOC);
+
+// Replies for every post on the page, in one query instead of one per post.
+$repliesByPost = [];
+if ($posts) {
+  $postIds = array_column($posts, 'post_id');
+  $placeholders = implode(',', array_fill(0, count($postIds), '?'));
+  $repliesStatement = $conn->prepare("
+    SELECT blog_post_id, author_name, content, date_posted
+    FROM blog_replies
+    WHERE blog_post_id IN ($placeholders)
+    ORDER BY date_posted ASC
+  ");
+  $repliesStatement->execute($postIds);
+
+  foreach ($repliesStatement->fetchAll(PDO::FETCH_ASSOC) as $reply) {
+    $repliesByPost[$reply['blog_post_id']][] = $reply;
+  }
+}
+
+// Escape helper -- user content is untrusted and was previously echoed raw.
+function e(string $value): string {
+  return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+?>
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
 
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ExchangeMyIdeas</title>
-  <link rel="stylesheet" href="./index.css" />
-  <script src="./index.js"></script>
+  <meta name="description" content="A minimalistic blog where anyone can post an idea, reply to others, and search everything that's been shared." />
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./index.js" defer></script>
 </head>
 
 <body>
+  <nav class="navbar">
+    <a class="brand" href="./index.php">Exchange<span>My</span>Ideas</a>
+    <a class="home-link" href="https://marinmirasol.com" target="_blank" rel="noopener noreferrer">&larr; marinmirasol.com</a>
+  </nav>
+
   <div class="container">
-    <form class="header">
+    <h1 class="page-title">Ideas worth exchanging</h1>
+    <div class="page-subtitle">Post a thought, reply to someone else's, or search everything shared so far.</div>
+
+    <form class="header" method="get" action="./index.php">
       <input
         id="search"
         name="search"
-        method="post"
         placeholder="Search for anything..."
-        action="
-          <?php echo $_SERVER['PHP_SELF']; ?>"
-          <?= isset($_GET['search']) && !empty($_GET['search']) ? " value=\"" . $_GET['search'] . "\"" : ""; ?>
+        value="<?= e($search) ?>"
       />
-      <input type="submit" style="display: none;" />
-      <div id="post" class="button">Post</div>
+      <input type="submit" />
+      <button type="button" id="post" class="button">Post</button>
     </form>
 
-    <?php
-      try {
-        require_once("./config.php");
+    <?php if (!$posts): ?>
+      <div class="empty-state">
+        <?= $search !== '' ? 'No posts match &ldquo;' . e($search) . '&rdquo;.' : 'No posts yet &mdash; be the first to share an idea.' ?>
+      </div>
+    <?php endif; ?>
 
-        // for the search bar, fetch all posts based on title, content, or author name with the keyword
-        $statement = "
-          SELECT post_id, author_name, content, title, date_posted
-          FROM blog_posts
-        ";
+    <?php foreach ($posts as $post): ?>
+      <div class="post" id="<?= e($post['post_id']) ?>">
+        <div class="content">
+          <div class="date"><?= e(date("d M Y", strtotime($post['date_posted']))) ?></div>
+          <div class="title"><?= e($post['title']) ?></div>
+          <div class="body"><?= nl2br(e($post['content'])) ?></div>
+          <div class="footer">
+            <div class="author"><span>👤 <?= e($post['author_name']) ?></span></div>
+            <button type="button" class="reply-button button secondary">Reply</button>
+          </div>
+        </div>
 
-        // get search value and prepare a query if set
-        $search = $_GET['search'];
-        if (isset($search) && !empty($search)) {
-            $statement .= "
-                WHERE title LIKE \"%" . $search . "%\"
-                OR content LIKE \"%" . $search . "%\"
-                OR author_name LIKE \"%" . $search . "%\"
-            ";
-        }
-        // execute the query
-        $query = $conn->prepare($statement);
-        $query->execute();
-                
-        // get all the posts from the db and display them
-        while ($postsRow = $query->fetch(PDO::FETCH_ASSOC)) {
-          echo "<div class=\"post\" id=\"" . $postsRow["post_id"] . "\">";
-          echo "  <div class=\"content\">";
-          echo "    <div class=\"date\">" . date("d M Y", strtotime($postsRow["date_posted"])) . "</div>";
-          echo "    <div class=\"title\">" . $postsRow["title"] . "</div>";
-          echo "    <div class=\"body\">" . nl2br($postsRow["content"]) . "</div>";
-          echo "    <div class=\"footer\">";
-          echo "      <div class=\"author\"><span>👤 " . $postsRow["author_name"] . "</span></div>";
-          echo "      <div id=\"reply\" class=\"button\">Reply</div>";
-          echo "    </div>";
-          echo "  </div>";
-          echo "  <div class=\"replies\">";
-
-          // get all the replies for the current post and display them
-          $repliesStatement = $conn->prepare("
-            SELECT author_name, content, date_posted
-            FROM blog_replies
-            WHERE blog_post_id = \"" . $postsRow["post_id"] . "\"
-          ");
-          $repliesStatement->execute();
-          
-          // post the reply info for the current post
-          while ($repliesRow = $repliesStatement->fetch(PDO::FETCH_ASSOC)) {
-            echo "    <div id=\"reply\" class=\"reply\">";
-            echo "      <div class=\"content\">";
-            echo "        <div class=\"date\">" . date("d M Y", strtotime($repliesRow["date_posted"])) . "</div>";
-            echo "        <div class=\"body\">" . nl2br($repliesRow["content"]) . "</div>";
-            echo "        <div class=\"author\"><span>👤 " . $repliesRow["author_name"] . "</span></div>";
-            echo "      </div>";
-            echo "    </div>";
-          }
-
-          echo "  </div>";
-          echo "</div>";
-        }
-      } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
-      }
-    ?>
+        <div class="replies">
+          <?php foreach ($repliesByPost[$post['post_id']] ?? [] as $reply): ?>
+            <div class="reply">
+              <div class="content">
+                <div class="date"><?= e(date("d M Y", strtotime($reply['date_posted']))) ?></div>
+                <div class="body"><?= nl2br(e($reply['content'])) ?></div>
+                <div class="author"><span>👤 <?= e($reply['author_name']) ?></span></div>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    <?php endforeach; ?>
   </div>
 
-  <!-- site footer -->
-  <div class="site-footer">
-    <div class="developer">Developed by:&nbsp;
-      <!-- show developer's with links to linkedin (don't put a space after each comma) -->
-      <a href="https://www.linkedin.com/in/marin-mirasol/" target="_blank" class="footer-link">Marin Mirasol</a>,
-      <a href="https://www.linkedin.com/in/amer-yono/" target="_blank" class="footer-link">Amer (Junior) Yono</a>, and
-      <a href="https://www.linkedin.com/in/corey-taylor-9a9bb1209/" target="_blank" class="footer-link">Corey Taylor</a>.
+  <footer class="site-footer">
+    <div class="developer">
+      Developed by
+      <a href="https://www.linkedin.com/in/marin-mirasol/" target="_blank" rel="noopener noreferrer" class="footer-link">Marin Mirasol</a>,
+      <a href="https://www.linkedin.com/in/amer-yono/" target="_blank" rel="noopener noreferrer" class="footer-link">Amer (Junior) Yono</a>, and
+      <a href="https://www.linkedin.com/in/corey-taylor-9a9bb1209/" target="_blank" rel="noopener noreferrer" class="footer-link">Corey Taylor</a>.
     </div>
-    <!-- show copyright info -->
-    <div class="copy">&copy; <?php echo date("Y"); ?> ExchangeMyIdeas.online</div>
-  </div>
-
+    <div class="copy">&copy; <?= date("Y") ?> ExchangeMyIdeas</div>
+  </footer>
 </body>
 
 </html>

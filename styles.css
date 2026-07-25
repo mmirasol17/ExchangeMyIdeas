@@ -80,6 +80,7 @@ a {
 }
 
 .navbar .brand-icon {
+  display: block; /* remove inline-image baseline gap so it centres in the flex row */
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 0.4rem;

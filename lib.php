@@ -183,7 +183,7 @@ function render_sidebar(): void {
   ];
   ?>
   <div class="sidebar-card">
-    <div class="sidebar-title">More from Marin</div>
+    <div class="sidebar-title">More apps</div>
     <?php foreach ($apps as $app): ?>
       <a class="app-item" href="<?= e($app['url']) ?>" target="_blank" rel="noopener noreferrer">
         <img class="app-icon" src="<?= e($app['icon']) ?>" alt="<?= e($app['name']) ?> icon" width="40" height="40" loading="lazy" />

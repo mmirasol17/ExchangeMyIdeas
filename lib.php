@@ -50,9 +50,11 @@ function column_exists(PDO $conn, string $table, string $column): bool {
     return $cache[$key];
   }
   try {
-    $stmt = $conn->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
-    $stmt->execute([$column]);
-    return $cache[$key] = (bool) $stmt->fetch();
+    // Use a direct query (not a prepared statement): SHOW COLUMNS with a bound
+    // LIKE param fails when server-side prepares are enabled (emulation off),
+    // as on InfinityFree. Table name is a trusted constant, never user input.
+    $cols = $conn->query("SHOW COLUMNS FROM `$table`")->fetchAll(PDO::FETCH_COLUMN);
+    return $cache[$key] = in_array($column, $cols, true);
   } catch (PDOException $e) {
     return $cache[$key] = false;
   }

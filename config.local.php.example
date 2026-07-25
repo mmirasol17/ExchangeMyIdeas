@@ -11,3 +11,7 @@ $dbHost = 'localhost';                 // e.g. sql123.infinityfree.com (NOT loca
 $dbName = 'your_database_name';
 $dbUser = 'your_database_user';
 $dbPass = 'your_database_password';
+
+// Secret key that protects migrate.php. Generate a random one and keep it
+// private. Leave empty to disable the migration runner entirely.
+$migrateKey = 'your_random_migration_key';

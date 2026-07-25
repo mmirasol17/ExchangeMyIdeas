@@ -1,5 +1,6 @@
 <?php
-require_once("./config.php");
+require_once('lib.php');
+require_once('config.php');
 
 $error = '';
 
@@ -13,8 +14,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   if ($title === '' || $content === '') {
     $error = 'A title and some content are both required.';
   } else {
-    // Prepared statement -- the original concatenated these straight into the
-    // INSERT, so any apostrophe broke the query and any SQL ran.
     $stmt = $conn->prepare("
       INSERT INTO blog_posts (post_id, author_name, content, title, date_posted)
       VALUES (uuid(), :author, :content, :title, NOW())
@@ -30,30 +29,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   }
 }
 
-function e(string $value): string {
-  return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
+render_head('ExchangeMyIdeas — Write a Blog', 'create_blog.js');
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ExchangeMyIdeas — Write a Blog</title>
-  <link rel="stylesheet" href="./styles.css" />
-  <script src="./create_blog.js" defer></script>
-</head>
-
-<body>
-  <nav class="navbar">
-    <a class="brand" href="./index.php">Exchange<span>My</span>Ideas</a>
-    <a class="home-link" href="https://marinmirasol.com" target="_blank" rel="noopener noreferrer">&larr; marinmirasol.com</a>
-  </nav>
-
-  <div class="container">
-    <h1 class="page-title">Share an idea</h1>
-    <div class="page-subtitle">Write something worth exchanging.</div>
+  <div class="container container-narrow">
+    <header class="hero">
+      <h1 class="page-title">Share an idea</h1>
+      <p class="page-subtitle">Write something worth exchanging.</p>
+    </header>
 
     <div class="header">
       <button type="button" id="go-to-posts" class="button secondary">&larr; Go back to posts</button>
@@ -78,6 +61,7 @@ function e(string $value): string {
         name="content"
         placeholder="Talk about anything you'd like to share 💡"
       ><?= e($_POST['content'] ?? '') ?></textarea>
+      <div id="char-count" class="char-count">0 characters</div>
 
       <div class="label">Name (optional)</div>
       <input
@@ -92,15 +76,4 @@ function e(string $value): string {
     </form>
   </div>
 
-  <footer class="site-footer">
-    <div class="developer">
-      Developed by
-      <a href="https://www.linkedin.com/in/marin-mirasol/" target="_blank" rel="noopener noreferrer" class="footer-link">Marin Mirasol</a>,
-      <a href="https://www.linkedin.com/in/amer-yono/" target="_blank" rel="noopener noreferrer" class="footer-link">Amer (Junior) Yono</a>, and
-      <a href="https://www.linkedin.com/in/corey-taylor-9a9bb1209/" target="_blank" rel="noopener noreferrer" class="footer-link">Corey Taylor</a>.
-    </div>
-    <div class="copy">&copy; <?= date("Y") ?> ExchangeMyIdeas</div>
-  </footer>
-</body>
-
-</html>
+<?php render_footer(); ?>

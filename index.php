@@ -1,5 +1,6 @@
 <?php
-require_once("./config.php");
+require_once('lib.php');
+require_once('config.php');
 
 // Handle a reply submission, then redirect so a refresh doesn't repost.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -25,32 +26,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 $search = trim($_GET['search'] ?? '');
+$sort = (($_GET['sort'] ?? '') === 'discussed') ? 'discussed' : 'recent';
+// Whitelisted ordering -- never interpolate user input into ORDER BY.
+$orderBy = $sort === 'discussed' ? 'reply_count DESC, p.date_posted DESC' : 'p.date_posted DESC';
 
-// Fetch posts, optionally filtered by the search term.
-// Bound as a parameter -- the original built this by string concatenation,
-// which allowed arbitrary SQL through the search box.
+// Posts, with a reply count for the badge and for "most discussed" sorting.
+$select = "
+  SELECT p.post_id, p.author_name, p.content, p.title, p.date_posted,
+    (SELECT COUNT(*) FROM blog_replies r WHERE r.blog_post_id = p.post_id) AS reply_count
+  FROM blog_posts p";
+
 if ($search !== '') {
-  $query = $conn->prepare("
-    SELECT post_id, author_name, content, title, date_posted
-    FROM blog_posts
-    WHERE title LIKE :search
-       OR content LIKE :search
-       OR author_name LIKE :search
-    ORDER BY date_posted DESC
-  ");
-  $query->execute([':search' => '%' . $search . '%']);
+  $query = $conn->prepare("$select
+    WHERE p.title LIKE :s OR p.content LIKE :s OR p.author_name LIKE :s
+    ORDER BY $orderBy");
+  $query->execute([':s' => '%' . $search . '%']);
 } else {
-  $query = $conn->prepare("
-    SELECT post_id, author_name, content, title, date_posted
-    FROM blog_posts
-    ORDER BY date_posted DESC
-  ");
+  $query = $conn->prepare("$select ORDER BY $orderBy");
   $query->execute();
 }
-
 $posts = $query->fetchAll(PDO::FETCH_ASSOC);
 
-// Replies for every post on the page, in one query instead of one per post.
+$totalPosts = (int) $conn->query("SELECT COUNT(*) FROM blog_posts")->fetchColumn();
+
+// Replies for every post on the page, in one query.
 $repliesByPost = [];
 if ($posts) {
   $postIds = array_column($posts, 'post_id');
@@ -59,41 +58,32 @@ if ($posts) {
     SELECT blog_post_id, author_name, content, date_posted
     FROM blog_replies
     WHERE blog_post_id IN ($placeholders)
-    ORDER BY date_posted ASC
-  ");
+    ORDER BY date_posted ASC");
   $repliesStatement->execute($postIds);
-
   foreach ($repliesStatement->fetchAll(PDO::FETCH_ASSOC) as $reply) {
     $repliesByPost[$reply['blog_post_id']][] = $reply;
   }
 }
 
-// Escape helper -- user content is untrusted and was previously echoed raw.
-function e(string $value): string {
-  return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+// Build sort links that preserve the active search term.
+function sort_link(string $sort, string $search): string {
+  $params = [];
+  if ($search !== '') $params['search'] = $search;
+  if ($sort !== 'recent') $params['sort'] = $sort;
+  return './index.php' . ($params ? '?' . http_build_query($params) : '');
 }
+
+render_head('ExchangeMyIdeas', 'index.js');
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ExchangeMyIdeas</title>
-  <meta name="description" content="A minimalistic blog where anyone can post an idea, reply to others, and search everything that's been shared." />
-  <link rel="stylesheet" href="./styles.css" />
-  <script src="./index.js" defer></script>
-</head>
-
-<body>
-  <nav class="navbar">
-    <a class="brand" href="./index.php">Exchange<span>My</span>Ideas</a>
-    <a class="home-link" href="https://marinmirasol.com" target="_blank" rel="noopener noreferrer">&larr; marinmirasol.com</a>
-  </nav>
 
   <div class="container">
-    <h1 class="page-title">Ideas worth exchanging</h1>
-    <div class="page-subtitle">Post a thought, reply to someone else's, or search everything shared so far.</div>
+    <header class="hero">
+      <h1 class="page-title">Ideas worth exchanging</h1>
+      <p class="page-subtitle">Post a thought, reply to someone else's, or search everything shared so far.</p>
+      <?php if ($totalPosts > 0): ?>
+        <div class="hero-stats"><?= $totalPosts ?> idea<?= $totalPosts === 1 ? '' : 's' ?> shared</div>
+      <?php endif; ?>
+    </header>
 
     <form class="header" method="get" action="./index.php" role="search">
       <input
@@ -116,48 +106,72 @@ function e(string $value): string {
       </div>
     <?php endif; ?>
 
-    <?php if (!$posts): ?>
-      <div class="empty-state">
-        <?= $search !== '' ? 'No posts match &ldquo;' . e($search) . '&rdquo;.' : 'No posts yet &mdash; be the first to share an idea.' ?>
+    <?php if ($totalPosts > 1): ?>
+      <div class="toolbar">
+        <div class="sort-control" role="tablist" aria-label="Sort posts">
+          <a class="sort-btn <?= $sort === 'recent' ? 'active' : '' ?>" href="<?= e(sort_link('recent', $search)) ?>">Newest</a>
+          <a class="sort-btn <?= $sort === 'discussed' ? 'active' : '' ?>" href="<?= e(sort_link('discussed', $search)) ?>">Most discussed</a>
+        </div>
       </div>
     <?php endif; ?>
 
-    <?php foreach ($posts as $post): ?>
-      <div class="post" id="<?= e($post['post_id']) ?>">
-        <div class="content">
-          <div class="date"><?= e(date("d M Y", strtotime($post['date_posted']))) ?></div>
-          <div class="title"><?= e($post['title']) ?></div>
-          <div class="body"><?= nl2br(e($post['content'])) ?></div>
-          <div class="footer">
-            <div class="author"><span>👤 <?= e($post['author_name']) ?></span></div>
-            <button type="button" class="reply-button button secondary">Reply</button>
+    <div class="layout">
+      <main class="feed">
+        <?php if (!$posts): ?>
+          <div class="empty-state">
+            <?= $search !== '' ? 'No posts match &ldquo;' . e($search) . '&rdquo;.' : 'No posts yet &mdash; be the first to share an idea.' ?>
           </div>
-        </div>
+        <?php endif; ?>
 
-        <div class="replies">
-          <?php foreach ($repliesByPost[$post['post_id']] ?? [] as $reply): ?>
-            <div class="reply">
-              <div class="content">
-                <div class="date"><?= e(date("d M Y", strtotime($reply['date_posted']))) ?></div>
-                <div class="body"><?= nl2br(e($reply['content'])) ?></div>
-                <div class="author"><span>👤 <?= e($reply['author_name']) ?></span></div>
+        <?php foreach ($posts as $i => $post): ?>
+          <?php $rc = (int) $post['reply_count']; ?>
+          <article class="post" id="<?= e($post['post_id']) ?>" style="--i: <?= $i ?>">
+            <div class="post-head">
+              <span class="avatar" style="background: <?= e(avatar_color($post['author_name'])) ?>"><?= e(initials($post['author_name'])) ?></span>
+              <div class="post-meta">
+                <span class="author-name"><?= e($post['author_name']) ?></span>
+                <span class="date"><?= e(relative_time($post['date_posted'])) ?></span>
               </div>
             </div>
-          <?php endforeach; ?>
-        </div>
-      </div>
-    <?php endforeach; ?>
+
+            <h2 class="title"><?= e($post['title']) ?></h2>
+            <div class="body"><?= nl2br(e($post['content'])) ?></div>
+
+            <div class="footer">
+              <?php if ($rc > 0): ?>
+                <button type="button" class="reply-toggle" aria-expanded="false">
+                  <span class="chat-icon">💬</span> <?= $rc ?> repl<?= $rc === 1 ? 'y' : 'ies' ?>
+                </button>
+              <?php else: ?>
+                <span class="no-replies">No replies yet</span>
+              <?php endif; ?>
+              <button type="button" class="reply-button button secondary">Reply</button>
+            </div>
+
+            <div class="replies<?= $rc > 0 ? ' collapsed' : '' ?>">
+              <?php foreach ($repliesByPost[$post['post_id']] ?? [] as $reply): ?>
+                <div class="reply">
+                  <span class="avatar avatar-sm" style="background: <?= e(avatar_color($reply['author_name'])) ?>"><?= e(initials($reply['author_name'])) ?></span>
+                  <div class="reply-content">
+                    <div class="reply-head">
+                      <span class="author-name"><?= e($reply['author_name']) ?></span>
+                      <span class="date"><?= e(relative_time($reply['date_posted'])) ?></span>
+                    </div>
+                    <div class="body"><?= nl2br(e($reply['content'])) ?></div>
+                  </div>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </article>
+
+          <?php if ($i === 1): ad_slot(); endif; // in-feed ad after the 2nd post ?>
+        <?php endforeach; ?>
+      </main>
+
+      <aside class="sidebar">
+        <?php render_sidebar(); ?>
+      </aside>
+    </div>
   </div>
 
-  <footer class="site-footer">
-    <div class="developer">
-      Developed by
-      <a href="https://www.linkedin.com/in/marin-mirasol/" target="_blank" rel="noopener noreferrer" class="footer-link">Marin Mirasol</a>,
-      <a href="https://www.linkedin.com/in/amer-yono/" target="_blank" rel="noopener noreferrer" class="footer-link">Amer (Junior) Yono</a>, and
-      <a href="https://www.linkedin.com/in/corey-taylor-9a9bb1209/" target="_blank" rel="noopener noreferrer" class="footer-link">Corey Taylor</a>.
-    </div>
-    <div class="copy">&copy; <?= date("Y") ?> ExchangeMyIdeas</div>
-  </footer>
-</body>
-
-</html>
+<?php render_footer(); ?>

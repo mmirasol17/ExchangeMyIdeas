@@ -3,12 +3,11 @@
  * Copy this file to config.local.php and fill in your database credentials.
  * config.local.php is gitignored -- never commit real credentials.
  *
- * Only needed on hosts that don't let you set environment variables
- * (most free shared PHP hosts). Otherwise set DB_HOST / DB_NAME /
- * DB_USER / DB_PASS in the environment and delete config.local.php.
+ * We set plain PHP variables (not putenv) because some shared hosts, such as
+ * InfinityFree, disable putenv()/getenv() for user scripts.
  */
 
-putenv('DB_HOST=localhost');
-putenv('DB_NAME=your_database_name');
-putenv('DB_USER=your_database_user');
-putenv('DB_PASS=your_database_password');
+$dbHost = 'localhost';                 // e.g. sql123.infinityfree.com (NOT localhost on InfinityFree)
+$dbName = 'your_database_name';
+$dbUser = 'your_database_user';
+$dbPass = 'your_database_password';

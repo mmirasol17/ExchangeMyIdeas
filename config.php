@@ -2,9 +2,12 @@
 /*
  * Database configuration.
  *
- * Credentials come from the environment so they are never committed. On shared
- * hosting without env var support, copy config.local.php.example to
- * config.local.php and fill it in -- that file is gitignored.
+ * Credentials live in config.local.php (gitignored), which sets the plain
+ * variables $dbHost / $dbName / $dbUser / $dbPass. We use plain variables
+ * rather than environment variables because some shared hosts (e.g.
+ * InfinityFree) disable putenv()/getenv() for user scripts.
+ *
+ * Falls back to environment variables, then to local-dev defaults.
  */
 
 $localConfig = __DIR__ . '/config.local.php';
@@ -12,10 +15,10 @@ if (file_exists($localConfig)) {
   require_once($localConfig);
 }
 
-$dbHost = getenv('DB_HOST') ?: 'localhost';
-$dbName = getenv('DB_NAME') ?: 'blog';
-$dbUser = getenv('DB_USER') ?: 'root';
-$dbPass = getenv('DB_PASS') ?: '';
+$dbHost = $dbHost ?? (getenv('DB_HOST') ?: 'localhost');
+$dbName = $dbName ?? (getenv('DB_NAME') ?: 'blog');
+$dbUser = $dbUser ?? (getenv('DB_USER') ?: 'root');
+$dbPass = $dbPass ?? (getenv('DB_PASS') ?: '');
 
 $connString = "mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4";
 

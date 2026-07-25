@@ -24,8 +24,8 @@ jobs:
           \$dbUser = '${{ secrets.DB_USER }}';
           \$dbPass = '${{ secrets.DB_PASS }}';
           \$migrateKey = '${{ secrets.MIGRATE_KEY }}';
-          \$adsenseClient = '';
-          \$adsenseSlot = '';
+          \$adsenseClient = '${{ secrets.ADSENSE_CLIENT }}';
+          \$adsenseSlot = '${{ secrets.ADSENSE_SLOT }}';
           PHP
 
       - name: Upload config.local.php and remove dbtest.php

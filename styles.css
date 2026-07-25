@@ -147,9 +147,35 @@ body {
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: stretch; /* Post button matches the search box height */
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+}
+
+/* Keep the Post button from shrinking below its label on narrow widths */
+.header #post {
+  flex-shrink: 0;
+}
+
+/* Active-search indicator shown under the search box */
+.search-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: -0.5rem 0 1.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-200);
+}
+
+.clear-search {
+  color: var(--blue-300);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.clear-search:hover {
+  text-decoration: underline;
 }
 
 #search {

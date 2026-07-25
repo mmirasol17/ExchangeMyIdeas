@@ -95,16 +95,26 @@ function e(string $value): string {
     <h1 class="page-title">Ideas worth exchanging</h1>
     <div class="page-subtitle">Post a thought, reply to someone else's, or search everything shared so far.</div>
 
-    <form class="header" method="get" action="./index.php">
+    <form class="header" method="get" action="./index.php" role="search">
       <input
         id="search"
         name="search"
+        type="text"
+        autocomplete="off"
+        aria-label="Search posts"
         placeholder="Search for anything..."
         value="<?= e($search) ?>"
       />
       <input type="submit" />
       <button type="button" id="post" class="button">Post</button>
     </form>
+
+    <?php if ($search !== ''): ?>
+      <div class="search-status">
+        <span>Showing results for &ldquo;<?= e($search) ?>&rdquo;</span>
+        <a class="clear-search" href="./index.php">Clear search</a>
+      </div>
+    <?php endif; ?>
 
     <?php if (!$posts): ?>
       <div class="empty-state">

@@ -68,6 +68,9 @@ a {
 }
 
 .navbar .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 700;
   font-size: 1.15rem;
   color: #fff;
@@ -76,7 +79,14 @@ a {
   letter-spacing: -0.01em;
 }
 
-.navbar .brand span {
+.navbar .brand-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.4rem;
+  flex-shrink: 0;
+}
+
+.navbar .brand-accent {
   color: var(--blue-300);
 }
 
@@ -381,6 +391,35 @@ a {
   white-space: normal;
 }
 
+/* Markdown rendered inside post/reply bodies */
+.body strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.body em {
+  font-style: italic;
+}
+
+.body code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  background-color: rgb(17 24 39 / 0.5);
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.body a {
+  color: var(--blue-300);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.body a:hover {
+  color: #fff;
+}
+
 .post .footer {
   display: flex;
   flex-direction: row;
@@ -420,6 +459,73 @@ a {
 .no-replies {
   font-size: 0.78rem;
   color: var(--gray-300);
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Like button */
+.like-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  padding: 0.35rem 0.5rem;
+  margin-left: -0.5rem;
+  border-radius: 0.5rem;
+  color: var(--gray-200);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 200ms, background-color 200ms;
+}
+
+.like-button:hover {
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.08);
+}
+
+.like-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  color: var(--gray-300);
+  transition: color 200ms, transform 200ms;
+}
+
+.like-button:hover .like-icon {
+  color: #f87171;
+}
+
+.like-button.liked {
+  color: #fecaca;
+  cursor: default;
+}
+
+.like-button.liked .like-icon {
+  color: #ef4444;
+  animation: likePop 350ms ease;
+}
+
+@keyframes likePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+/* Honeypot field — hidden from humans, present for bots */
+.hp {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ---------- Replies ---------- */
@@ -566,17 +672,12 @@ textarea.reply-input {
   transform: translateX(3px);
 }
 
-.app-mono {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.app-icon {
   flex-shrink: 0;
   width: 2.4rem;
   height: 2.4rem;
   border-radius: 0.6rem;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #fff;
+  object-fit: cover;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
 }
 
@@ -735,6 +836,29 @@ textarea.reply-input {
   margin-bottom: 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+/* Long-form text (privacy policy) */
+.prose {
+  color: var(--gray-200);
+  line-height: 1.7;
+}
+
+.prose h2 {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.prose p {
+  margin: 0 0 0.9rem;
+  font-size: 0.95rem;
+}
+
+.prose a {
+  color: var(--blue-300);
+  text-decoration: underline;
 }
 
 /* ---------- Footer ---------- */

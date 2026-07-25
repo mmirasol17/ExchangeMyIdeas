@@ -37,8 +37,52 @@ function avatar_color(string $name): string {
   return "hsl({$hue}deg 55% 45%)";
 }
 
+/**
+ * Whether a column exists on a table. Cached per request. Lets features that
+ * depend on a migration (e.g. likes) degrade gracefully until it has run, so a
+ * deploy can never reference a not-yet-created column and break the site.
+ * Table name is a trusted constant, never user input.
+ */
+function column_exists(PDO $conn, string $table, string $column): bool {
+  static $cache = [];
+  $key = "$table.$column";
+  if (array_key_exists($key, $cache)) {
+    return $cache[$key];
+  }
+  try {
+    $stmt = $conn->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
+    $stmt->execute([$column]);
+    return $cache[$key] = (bool) $stmt->fetch();
+  } catch (PDOException $e) {
+    return $cache[$key] = false;
+  }
+}
+
+/**
+ * Renders a safe, minimal subset of Markdown: **bold**, *italic*, `code`, and
+ * [text](https://url) links. Input is HTML-escaped FIRST, so user content can
+ * never inject markup — the formatting is applied to already-safe text.
+ */
+function render_markdown(string $text): string {
+  $safe = e($text);
+  // `inline code`
+  $safe = preg_replace_callback('/`([^`\n]+)`/', fn($m) => '<code>' . $m[1] . '</code>', $safe);
+  // **bold**
+  $safe = preg_replace('/\*\*([^*\n]+)\*\*/', '<strong>$1</strong>', $safe);
+  // *italic* (not part of a ** run)
+  $safe = preg_replace('/(?<!\*)\*(?!\*)([^*\n]+)\*(?!\*)/', '<em>$1</em>', $safe);
+  // [text](https://url) -- URL is already entity-escaped by e()
+  $safe = preg_replace_callback(
+    '/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/',
+    fn($m) => '<a href="' . $m[2] . '" target="_blank" rel="noopener noreferrer nofollow">' . $m[1] . '</a>',
+    $safe
+  );
+  return nl2br($safe);
+}
+
 /** Renders the document head, opening body, and top navbar. */
 function render_head(string $title, string $script): void {
+  global $adsenseClient;
   ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -58,18 +102,18 @@ function render_head(string $title, string $script): void {
   <link rel="manifest" href="./site.webmanifest" />
   <meta name="theme-color" content="#1e3a8a" />
   <link rel="stylesheet" href="./styles.css" />
-  <!--
-    Google AdSense: after you're approved at https://www.google.com/adsense,
-    uncomment this and swap in your publisher ID (ca-pub-XXXXXXXXXXXXXXXX).
-    Then replace the placeholders inside ad_slot() with your real <ins> unit.
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
-  -->
+  <?php if (!empty($adsenseClient)): ?>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= e($adsenseClient) ?>" crossorigin="anonymous"></script>
+  <?php endif; ?>
   <script src="./<?= e($script) ?>" defer></script>
 </head>
 
 <body>
   <nav class="navbar">
-    <a class="brand" href="./index.php">Exchange<span>My</span>Ideas</a>
+    <a class="brand" href="./index.php">
+      <img class="brand-icon" src="./favicon.svg" alt="" width="28" height="28" />
+      <span class="brand-text">Exchange<span class="brand-accent">My</span>Ideas</span>
+    </a>
     <a class="home-link" href="https://marinmirasol.com" target="_blank" rel="noopener noreferrer">&larr; marinmirasol.com</a>
   </nav>
   <?php
@@ -85,7 +129,10 @@ function render_footer(): void {
       <a href="https://www.linkedin.com/in/amer-yono/" target="_blank" rel="noopener noreferrer" class="footer-link">Amer (Junior) Yono</a>, and
       <a href="https://www.linkedin.com/in/corey-taylor-9a9bb1209/" target="_blank" rel="noopener noreferrer" class="footer-link">Corey Taylor</a>.
     </div>
-    <div class="copy">&copy; <?= date('Y') ?> ExchangeMyIdeas</div>
+    <div class="copy">
+      &copy; <?= date('Y') ?> ExchangeMyIdeas
+      &middot; <a href="./privacy.php" class="footer-link">Privacy Policy</a>
+    </div>
   </footer>
 </body>
 
@@ -99,10 +146,21 @@ function render_footer(): void {
  * replace the .ad-placeholder div below with your <ins class="adsbygoogle">.
  */
 function ad_slot(): void {
+  global $adsenseClient, $adsenseSlot;
   ?>
   <div class="ad-slot" role="complementary" aria-label="Advertisement">
     <span class="ad-label">Advertisement</span>
-    <div class="ad-placeholder">Your ad could be here</div>
+    <?php if (!empty($adsenseClient) && !empty($adsenseSlot)): ?>
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="<?= e($adsenseClient) ?>"
+        data-ad-slot="<?= e($adsenseSlot) ?>"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    <?php else: ?>
+      <div class="ad-placeholder">Your ad could be here</div>
+    <?php endif; ?>
   </div>
   <?php
 }
@@ -114,15 +172,13 @@ function render_sidebar(): void {
       'name' => 'Lifelyze',
       'tag'  => 'Your whole life, organized — calendar, budget, health, notes, and an AI assistant in one app.',
       'url'  => 'https://lifelyze.com',
-      'mono' => 'L',
-      'grad' => 'linear-gradient(135deg, #3b82f6, #22c55e)',
+      'icon' => './app-icons/lifelyze.png',
     ],
     [
       'name' => 'Tunelyze',
       'tag'  => "Smarter Spotify playlists built from your library's audio features.",
       'url'  => 'https://tunelyze.com',
-      'mono' => 'T',
-      'grad' => 'linear-gradient(135deg, #22c55e, #0ea5e9)',
+      'icon' => './app-icons/tunelyze.png',
     ],
   ];
   ?>
@@ -130,7 +186,7 @@ function render_sidebar(): void {
     <div class="sidebar-title">More from Marin</div>
     <?php foreach ($apps as $app): ?>
       <a class="app-item" href="<?= e($app['url']) ?>" target="_blank" rel="noopener noreferrer">
-        <span class="app-mono" style="background: <?= e($app['grad']) ?>"><?= e($app['mono']) ?></span>
+        <img class="app-icon" src="<?= e($app['icon']) ?>" alt="<?= e($app['name']) ?> icon" width="40" height="40" loading="lazy" />
         <span class="app-info">
           <span class="app-name"><?= e($app['name']) ?> <span class="app-arrow">&rarr;</span></span>
           <span class="app-tag"><?= e($app['tag']) ?></span>

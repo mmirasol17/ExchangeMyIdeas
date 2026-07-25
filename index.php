@@ -4,6 +4,12 @@ require_once('config.php');
 
 // Handle a reply submission, then redirect so a refresh doesn't repost.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  // Honeypot: real users leave this empty; bots tend to fill every field.
+  if (trim($_POST['website'] ?? '') !== '') {
+    header("Location: ./index.php");
+    exit;
+  }
+
   $blog_post_id = trim($_POST['blog_post_id'] ?? '');
   $reply_content = trim($_POST['reply_content'] ?? '');
   $reply_author = trim($_POST['reply_author'] ?? '');
@@ -25,14 +31,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   exit;
 }
 
-$search = trim($_GET['search'] ?? '');
-$sort = (($_GET['sort'] ?? '') === 'discussed') ? 'discussed' : 'recent';
-// Whitelisted ordering -- never interpolate user input into ORDER BY.
-$orderBy = $sort === 'discussed' ? 'reply_count DESC, p.date_posted DESC' : 'p.date_posted DESC';
+// The likes feature only lights up once migration 001 has added the column.
+$hasLikes = column_exists($conn, 'blog_posts', 'likes');
 
-// Posts, with a reply count for the badge and for "most discussed" sorting.
+$search = trim($_GET['search'] ?? '');
+$validSorts = $hasLikes ? ['recent', 'discussed', 'liked'] : ['recent', 'discussed'];
+$sort = in_array($_GET['sort'] ?? '', $validSorts, true) ? $_GET['sort'] : 'recent';
+
+// Whitelisted ordering -- never interpolate user input into ORDER BY.
+$orderBy = match ($sort) {
+  'discussed' => 'reply_count DESC, p.date_posted DESC',
+  'liked'     => 'likes DESC, p.date_posted DESC',
+  default     => 'p.date_posted DESC',
+};
+
+// Posts, with a reply count for the badge/sorting and likes when available.
+$likesCol = $hasLikes ? 'p.likes' : '0 AS likes';
 $select = "
-  SELECT p.post_id, p.author_name, p.content, p.title, p.date_posted,
+  SELECT p.post_id, p.author_name, p.content, p.title, p.date_posted, $likesCol,
     (SELECT COUNT(*) FROM blog_replies r WHERE r.blog_post_id = p.post_id) AS reply_count
   FROM blog_posts p";
 
@@ -111,6 +127,9 @@ render_head('ExchangeMyIdeas', 'index.js');
         <div class="sort-control" role="tablist" aria-label="Sort posts">
           <a class="sort-btn <?= $sort === 'recent' ? 'active' : '' ?>" href="<?= e(sort_link('recent', $search)) ?>">Newest</a>
           <a class="sort-btn <?= $sort === 'discussed' ? 'active' : '' ?>" href="<?= e(sort_link('discussed', $search)) ?>">Most discussed</a>
+          <?php if ($hasLikes): ?>
+            <a class="sort-btn <?= $sort === 'liked' ? 'active' : '' ?>" href="<?= e(sort_link('liked', $search)) ?>">Most liked</a>
+          <?php endif; ?>
         </div>
       </div>
     <?php endif; ?>
@@ -135,16 +154,24 @@ render_head('ExchangeMyIdeas', 'index.js');
             </div>
 
             <h2 class="title"><?= e($post['title']) ?></h2>
-            <div class="body"><?= nl2br(e($post['content'])) ?></div>
+            <div class="body"><?= render_markdown($post['content']) ?></div>
 
             <div class="footer">
-              <?php if ($rc > 0): ?>
-                <button type="button" class="reply-toggle" aria-expanded="false">
-                  <span class="chat-icon">💬</span> <?= $rc ?> repl<?= $rc === 1 ? 'y' : 'ies' ?>
-                </button>
-              <?php else: ?>
-                <span class="no-replies">No replies yet</span>
-              <?php endif; ?>
+              <div class="footer-actions">
+                <?php if ($hasLikes): ?>
+                  <button type="button" class="like-button" data-post-id="<?= e($post['post_id']) ?>" aria-label="Like this post">
+                    <span class="like-icon">&#9829;</span>
+                    <span class="like-count"><?= (int) $post['likes'] ?></span>
+                  </button>
+                <?php endif; ?>
+                <?php if ($rc > 0): ?>
+                  <button type="button" class="reply-toggle" aria-expanded="false">
+                    <span class="chat-icon">💬</span> <?= $rc ?> repl<?= $rc === 1 ? 'y' : 'ies' ?>
+                  </button>
+                <?php else: ?>
+                  <span class="no-replies">No replies yet</span>
+                <?php endif; ?>
+              </div>
               <button type="button" class="reply-button button secondary">Reply</button>
             </div>
 
@@ -157,7 +184,7 @@ render_head('ExchangeMyIdeas', 'index.js');
                       <span class="author-name"><?= e($reply['author_name']) ?></span>
                       <span class="date"><?= e(relative_time($reply['date_posted'])) ?></span>
                     </div>
-                    <div class="body"><?= nl2br(e($reply['content'])) ?></div>
+                    <div class="body"><?= render_markdown($reply['content']) ?></div>
                   </div>
                 </div>
               <?php endforeach; ?>

@@ -17,6 +17,33 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Likes — one per browser, tracked in localStorage
+  document.querySelectorAll(".like-button").forEach((btn) => {
+    const postId = btn.dataset.postId;
+    const countEl = btn.querySelector(".like-count");
+    if (localStorage.getItem("liked_" + postId)) {
+      btn.classList.add("liked");
+    }
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("liked")) return;
+      btn.classList.add("liked");
+      localStorage.setItem("liked_" + postId, "1");
+      const body = new URLSearchParams({ post_id: postId }).toString();
+      fetch("./like.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && typeof data.likes === "number") countEl.textContent = data.likes;
+        })
+        .catch(() => {
+          /* keep the optimistic count on network error */
+        });
+    });
+  });
+
   // Inline reply form on each post
   for (const post of document.getElementsByClassName("post")) {
     const replies = post.querySelector(".replies");
@@ -78,6 +105,15 @@ function buildReplyForm(postId, onCancel) {
   postIdInput.name = "blog_post_id";
   postIdInput.value = postId;
 
+  // Honeypot: hidden from users, tempting to bots
+  const honeypot = document.createElement("input");
+  honeypot.type = "text";
+  honeypot.name = "website";
+  honeypot.className = "hp";
+  honeypot.tabIndex = -1;
+  honeypot.autocomplete = "off";
+  honeypot.setAttribute("aria-hidden", "true");
+
   const cancelButton = document.createElement("button");
   cancelButton.type = "button";
   cancelButton.className = "button secondary";
@@ -94,6 +130,6 @@ function buildReplyForm(postId, onCancel) {
   footer.appendChild(cancelButton);
   footer.appendChild(submitButton);
 
-  form.append(contentLabel, content, authorLabel, author, postIdInput, footer);
+  form.append(contentLabel, content, authorLabel, author, postIdInput, honeypot, footer);
   return { form, content };
 }

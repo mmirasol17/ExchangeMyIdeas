@@ -1,0 +1,4 @@
+# ads.txt for exchangemyideas.marinmirasol.com
+# After AdSense approval, replace pub-0000000000000000 with your real
+# publisher ID (the digits from ca-pub-XXXXXXXXXXXXXXXX) and remove this note.
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

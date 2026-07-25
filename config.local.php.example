@@ -15,3 +15,10 @@ $dbPass = 'your_database_password';
 // Secret key that protects migrate.php. Generate a random one and keep it
 // private. Leave empty to disable the migration runner entirely.
 $migrateKey = 'your_random_migration_key';
+
+// Google AdSense. Leave empty to show placeholder ad slots. After you're
+// approved, set both to render real ads:
+//   $adsenseClient = 'ca-pub-1234567890123456';  // your publisher ID
+//   $adsenseSlot   = '1234567890';               // an ad unit slot id
+$adsenseClient = '';
+$adsenseSlot   = '';

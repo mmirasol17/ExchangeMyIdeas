@@ -6,6 +6,12 @@ $error = '';
 
 // Handle a new post, then redirect so a refresh doesn't repost.
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  // Honeypot: real users leave this empty; bots tend to fill every field.
+  if (trim($_POST['website'] ?? '') !== '') {
+    header("Location: ./index.php");
+    exit;
+  }
+
   $title = trim($_POST['title'] ?? '');
   $content = trim($_POST['content'] ?? '');
   $author = trim($_POST['author'] ?? '');
@@ -47,6 +53,7 @@ render_head('ExchangeMyIdeas — Write a Blog', 'create_blog.js');
     <?php endif; ?>
 
     <form class="post-form" name="post" method="post" action="./create_blog.php">
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
       <div class="label">Title</div>
       <input
         class="field"

@@ -212,7 +212,19 @@ check(reason_emoji('hate_speech') !== '', 'moderation reasons have icons');
 check(reason_emoji('not_a_real_code') === '🚩', 'an unknown reason code falls back');
 
 check(activity_emoji(0, 0) === '🌱', 'a quiet post reads as new');
+check(activity_emoji(1, 0) === '💬', 'any activity reads as discussion');
 check(activity_emoji(30, 0) === '🔥', 'a busy thread reads as busy');
+
+// U+FE0F-dependent glyphs render as monochrome blobs where colour-font
+// coverage is thin, which is what happened on the live site. Every emoji this
+// app emits must stand on its own without a variation selector.
+foreach (['ai', 'legacy-code', 'beekeeping', 'zzunknown'] as $slug) {
+  check(!str_contains(tag_emoji($slug), "\u{FE0F}") || mb_strlen(tag_emoji($slug)) <= 2,
+    "tag icon for \"$slug\" is a self-contained glyph");
+}
+foreach ([activity_emoji(0), activity_emoji(1), activity_emoji(30)] as $glyph) {
+  check(!str_contains($glyph, "\u{FE0F}"), 'activity icons need no variation selector');
+}
 
 // ---------------------------------------------------------------------------
 section('URLs - one canonical spelling per page');

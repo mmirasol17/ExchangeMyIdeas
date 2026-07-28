@@ -158,8 +158,12 @@ function reason_emoji(string $code): string {
  */
 function activity_emoji(int $replyCount, int $likes = 0): string {
   $heat = $replyCount * 2 + $likes;
+
+  // Three tiers, not four. The obvious fourth glyph for "a little activity" is
+  // U+1F5E8 speech balloon, which defaults to *text* presentation and has thin
+  // colour-font coverage -- on the live site it rendered as a dark blob on
+  // every card. Only emoji with solid colour coverage are used here.
   if ($heat >= 20) return '🔥';
-  if ($heat >= 8)  return '💬';
-  if ($heat >= 1)  return '🗨️';
+  if ($heat >= 1)  return '💬';
   return '🌱';
 }

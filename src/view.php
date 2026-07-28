@@ -15,6 +15,30 @@
 require_once __DIR__ . '/views/post_card.php';
 
 /**
+ * A versioned URL for a static asset.
+ *
+ * .htaccess asks for a long cache lifetime on CSS and JS, which is right for
+ * speed and wrong for deploys: a returning visitor would keep running the old
+ * script against freshly rendered HTML until the cache expired. Stamping the
+ * file's modification time into the query string means a changed file is a
+ * changed URL, so an update is picked up immediately while unchanged files stay
+ * cached.
+ *
+ * Caught this the honest way -- a stale editor.js in a test browser silently
+ * ran the previous version of a just-deployed change.
+ */
+function asset(string $path): string {
+  static $versions = [];
+
+  if (!isset($versions[$path])) {
+    $file = dirname(__DIR__) . $path;
+    $versions[$path] = is_file($file) ? (string) filemtime($file) : '';
+  }
+
+  return $versions[$path] === '' ? $path : $path . '?v=' . $versions[$path];
+}
+
+/**
  * Renders the document head, opening body, and top navbar.
  *
  * @param string|string[] $script Page script filename(s) in assets/js.
@@ -75,7 +99,7 @@ function render_head(string $title, string|array $script, array $meta = []): voi
   <link rel="alternate" type="application/rss+xml" title="ExchangeMyIdeas" href="/feed.xml" />
   <meta name="theme-color" content="#1e3a8a" />
   <meta name="color-scheme" content="dark" />
-  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <link rel="stylesheet" href="<?= e(asset("/assets/css/styles.css")) ?>" />
   <?php if (!empty($adsenseClient)): ?>
   <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<?= e($adsenseClient) ?>" crossorigin="anonymous"></script>
@@ -85,9 +109,9 @@ function render_head(string $title, string|array $script, array $meta = []): voi
   <?php endif; ?>
   <!-- app.js carries what every page needs (toasts, sharing, likes, ownership).
        The rest add that page's own behaviour; a page may have none. -->
-  <script src="/assets/js/app.js" defer></script>
+  <script src="<?= e(asset("/assets/js/app.js")) ?>" defer></script>
   <?php foreach (array_filter((array) $script) as $file): ?>
-  <script src="/assets/js/<?= e($file) ?>" defer></script>
+  <script src="<?= e(asset("/assets/js/" . $file)) ?>" defer></script>
   <?php endforeach; ?>
 </head>
 

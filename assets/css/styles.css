@@ -1109,33 +1109,55 @@ textarea.reply-input {
 
 /* ---------- Ad slot ---------- */
 
+/*
+ * The slot is a recessed panel, not a card.
+ *
+ * It used to be a dashed outline over a 3%-white fill, which let the page
+ * gradient read straight through it -- next to the solid post cards it looked
+ * like a hole in the layout rather than a block in it.
+ *
+ * It is deliberately NOT styled like a post card either. An ad that borrows the
+ * appearance of surrounding content invites accidental clicks, which is both
+ * bad manners and against AdSense's placement policy. Darker than the page,
+ * flat instead of raised, and plainly labelled: clearly a slot, clearly not a
+ * post.
+ */
 .ad-slot {
   position: relative;
-  border: 1px dashed rgb(255 255 255 / 0.2);
   border-radius: var(--radius);
-  background-color: rgb(255 255 255 / 0.03);
-  padding: 1.25rem 1rem 1rem;
+  background-color: rgb(17 24 39 / 0.8);
+  border: 1px solid rgb(255 255 255 / 0.09);
+  padding: 1.7rem 1rem 1.15rem;
   text-align: center;
   overflow: hidden; /* an ad unit must never widen the page */
 }
 
-/* In-feed ad sits between posts */
-.feed > .ad-slot {
+/*
+ * In-feed ad sits between posts.
+ *
+ * Descendant, not child: the feed's cards live inside #feed-items (the
+ * scroll-loading container), so ".feed > .ad-slot" silently stopped matching
+ * and the slot lost its bottom margin, leaving the next post flush against it.
+ * The sidebar is a sibling of .feed and spaces itself with flex gap, so it is
+ * unaffected by this rule.
+ */
+.feed .ad-slot {
   margin-bottom: 1.25rem;
 }
 
 .ad-label {
   position: absolute;
-  top: 0.5rem;
-  left: 0.75rem;
+  top: 0.6rem;
+  left: 0.85rem;
   font-size: 0.6rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--gray-400);
 }
 
 .ad-placeholder {
-  min-height: 5rem;
+  min-height: 3.5rem;
   display: flex;
   align-items: center;
   justify-content: center;

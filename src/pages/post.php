@@ -95,6 +95,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ---------------------------------------------------------------------------
 $post = find_post($conn, $postId);
 
+/*
+ * When flagged content is held back (MODERATION_HIDE_FLAGGED), find_post()
+ * refuses to return it -- including to the person who just wrote it, who was
+ * redirected straight here after submitting. A 404 would tell that author their
+ * post had vanished, which is both alarming and untrue.
+ *
+ * So look again, and if the post exists but is merely awaiting review, say so.
+ * The content itself stays private; only its existence is acknowledged, and
+ * post ids are uuids that nobody can guess their way to.
+ */
+if ($post === null && MODERATION_HIDE_FLAGGED) {
+  $held = find_post($conn, $postId, true);
+  if ($held !== null && ($held['status'] ?? '') === 'flagged') {
+    render_head('Awaiting review - ExchangeMyIdeas', '', ['noindex' => true]);
+    ?>
+    <div class="container container-narrow">
+      <div class="empty-state">
+        <div class="empty-emoji" aria-hidden="true">&#128172;</div>
+        <h1 class="page-title">This post is awaiting review</h1>
+        <p class="sidebar-text">
+          The automated filter was not sure about it, so a human is taking a
+          look before it appears publicly. Nothing has been deleted &mdash; if
+          it is fine, it will show up shortly.
+        </p>
+        <div class="form-actions" style="justify-content: center">
+          <a class="button" href="/">&larr; Back to all posts</a>
+        </div>
+      </div>
+    </div>
+    <?php
+    render_footer();
+    return;
+  }
+}
+
 if ($post === null) {
   http_response_code(404);
   render_page('not_found');

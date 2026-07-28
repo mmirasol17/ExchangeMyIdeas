@@ -377,7 +377,7 @@ function fetch_tags_for_posts(PDO $conn, array $postIds): array {
  */
 function popular_tags(PDO $conn, int $limit = 12, bool $moderationEnabled = false): array {
   try {
-    $visible = $moderationEnabled ? "AND p.status <> 'hidden'" : '';
+    $visible = $moderationEnabled ? 'AND ' . visibility_sql('p') : '';
     $stmt = $conn->query("
       SELECT t.slug, t.label, COUNT(*) AS post_count
       FROM post_tags pt

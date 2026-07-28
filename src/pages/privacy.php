@@ -45,8 +45,9 @@ render_head('Privacy Policy - ExchangeMyIdeas', '', [
         entirely on this server. Nothing you write is sent to a third-party
         moderation service. The filter looks for slurs, threats, sexual content,
         and spam, and does one of three things: publishes your submission,
-        refuses it and tells you why, or publishes it and adds it to a queue for
-        a human to review.</p>
+        refuses it and tells you why, or holds it for a human to review before
+        it appears publicly. Held content is never deleted, and you are told
+        when yours is waiting.</p>
       <p>Automated filters make mistakes in both directions. If yours was
         wrongly refused, rephrasing usually clears it &mdash; and if you think
         something was wrongly removed, get in touch using the link below.</p>

@@ -141,8 +141,21 @@ spaced-out obfuscation before matching, then returns one of three verdicts:
 
 - **block** - refused at submission time, with an explanation, and the author
   keeps what they wrote.
-- **flag** - published, and queued at `/moderate` for review.
+- **flag** - held back and queued at `/moderate` for review. The author is
+  told their post is awaiting review rather than being shown a 404.
 - **allow** - published normally.
+
+`MODERATION_HIDE_FLAGGED` decides whether flagged content waits for approval
+or publishes immediately. It is **on**, which is the right posture for a site
+carrying ads: an ad network holds the publisher responsible for everything on
+the page, including what other people posted, so "publish now, review later"
+puts the account on the line for content nobody has looked at yet.
+
+Whichever way it is set, every query that shows something to the public goes
+through one `visibility_sql()` helper. Five hand-written status checks had
+already drifted apart, and only one of them honoured the setting — turning it
+on would have hidden posts from the feed while still counting them, still
+showing their replies, and still listing their topics.
 
 The middle tier is the point. Text classification without context gets
 ambiguous cases wrong in both directions, so anything genuinely uncertain goes

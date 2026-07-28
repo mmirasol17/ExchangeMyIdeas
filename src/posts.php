@@ -43,6 +43,24 @@ function site_caps(PDO $conn): array {
 }
 
 /**
+ * The condition that decides whether a row is publicly visible.
+ *
+ * Every query that shows something to the public must use this, because
+ * "visible" is a policy that changes in one place (MODERATION_HIDE_FLAGGED) and
+ * has to change everywhere at once. Five separate hand-written status checks
+ * had already drifted apart -- only one of them honoured the setting, so
+ * turning it on would have hidden posts from the feed while still counting
+ * them, still showing their replies, and still listing their topics.
+ *
+ * The status values are constants in this file, never user input, so they are
+ * safe to inline.
+ */
+function visibility_sql(string $alias = ''): string {
+  $col = ($alias === '' ? '' : $alias . '.') . 'status';
+  return MODERATION_HIDE_FLAGGED ? "$col = 'visible'" : "$col <> 'hidden'";
+}
+
+/**
  * Build the WHERE clause shared by the count and page queries.
  *
  * @return array{0:string,1:array<string,mixed>}
@@ -54,10 +72,7 @@ function posts_filter(PDO $conn, array $opts): array {
 
   // Hidden posts never appear anywhere public.
   if ($caps['moderation'] && empty($opts['includeHidden'])) {
-    $where[] = "p.status <> 'hidden'";
-    if (MODERATION_HIDE_FLAGGED) {
-      $where[] = "p.status <> 'flagged'";
-    }
+    $where[] = visibility_sql('p');
   }
 
   if (!empty($opts['search'])) {
@@ -117,7 +132,7 @@ function fetch_posts(PDO $conn, array $opts = []): array {
   [$whereSql, $params] = posts_filter($conn, $opts);
 
   // Replies to hidden content should not inflate a post's reply count.
-  $replyVisible = $caps['moderation'] ? " AND r.status <> 'hidden'" : '';
+  $replyVisible = $caps['moderation'] ? ' AND ' . visibility_sql('r') : '';
   $replyCount = "(SELECT COUNT(*) FROM blog_replies r
     WHERE r.blog_post_id = p.post_id$replyVisible) AS reply_count";
 
@@ -200,7 +215,7 @@ function fetch_replies(PDO $conn, array $postIds, bool $includeHidden = false): 
   $columns[] = $caps['moderation'] ? 'flag_score' : '0 AS flag_score';
   $columns[] = $caps['moderation'] ? 'flag_reasons' : "'' AS flag_reasons";
 
-  $visible = ($caps['moderation'] && !$includeHidden) ? " AND status <> 'hidden'" : '';
+  $visible = ($caps['moderation'] && !$includeHidden) ? ' AND ' . visibility_sql() : '';
 
   try {
     $placeholders = implode(',', array_fill(0, count($postIds), '?'));
@@ -228,7 +243,7 @@ function count_visible_posts(PDO $conn): int {
   $caps = site_caps($conn);
   try {
     $sql = 'SELECT COUNT(*) FROM blog_posts p'
-      . ($caps['moderation'] ? " WHERE p.status <> 'hidden'" : '');
+      . ($caps['moderation'] ? ' WHERE ' . visibility_sql('p') : '');
     return (int) $conn->query($sql)->fetchColumn();
   } catch (PDOException $e) {
     return 0;

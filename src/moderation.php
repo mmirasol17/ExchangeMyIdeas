@@ -34,8 +34,21 @@ const MODERATION_BLOCK_THRESHOLD = 100;
 /** Score at or above which a submission is published but queued for review. */
 const MODERATION_FLAG_THRESHOLD = 40;
 
-/** Set true to hide flagged content from the feed until a moderator approves it. */
-const MODERATION_HIDE_FLAGGED = false;
+/**
+ * Whether flagged content waits for approval before the public can see it.
+ *
+ * true  - flagged submissions are held. Safer, and the right posture once the
+ *         site carries ads: an ad network holds the publisher responsible for
+ *         everything on the page, including what other people posted, so
+ *         "publish now, review later" puts the account on the line for content
+ *         nobody has looked at yet.
+ * false - flagged submissions publish immediately and are queued for review.
+ *         Friendlier on a site with no commercial exposure.
+ *
+ * Either way the author is told what happened; see the pending-review state in
+ * pages/post.php. Nothing is silently swallowed.
+ */
+const MODERATION_HIDE_FLAGGED = true;
 
 /** Load and cache the term lists. */
 function moderation_lists(): array {

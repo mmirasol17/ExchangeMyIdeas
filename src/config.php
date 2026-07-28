@@ -8,9 +8,16 @@
  * InfinityFree) disable putenv()/getenv() for user scripts.
  *
  * Falls back to environment variables, then to local-dev defaults.
+ *
+ * WHERE config.local.php LIVES
+ *   The project root, not this directory. It is a deployment artifact rather
+ *   than source: the provisioning workflow uploads it straight into htdocs/,
+ *   and ads.php reads it without loading anything else. dirname(__DIR__) keeps
+ *   that working now that this file sits in src/. It is never served as text --
+ *   PHP executes it, and the root .htaccess denies it outright as well.
  */
 
-$localConfig = __DIR__ . '/config.local.php';
+$localConfig = dirname(__DIR__) . '/config.local.php';
 if (file_exists($localConfig)) {
   require_once($localConfig);
 }

@@ -1,13 +1,13 @@
 {
   "name": "ExchangeMyIdeas",
   "short_name": "ExchangeMyIdeas",
-  "description": "A minimalist blog for exchanging ideas — post, reply, and search.",
-  "start_url": "./index.php",
+  "description": "A minimalist blog for exchanging ideas - post, reply, and search.",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#1e3a8a",
   "background_color": "#111827",
   "icons": [
-    { "src": "./android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "./android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/assets/img/icons/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/img/icons/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }

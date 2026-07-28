@@ -1,0 +1,11 @@
+# Application internals are included by the pages at the web root; nothing here
+# is meant to be requested directly. Denying access means a server that ever
+# fails to execute PHP serves nothing rather than serving config.local.php as
+# plain text.
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>

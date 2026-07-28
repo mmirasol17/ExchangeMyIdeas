@@ -29,6 +29,11 @@ jobs:
           # Never touch server-only or repo-only files. In particular
           # config.local.php holds the DB credentials and lives ONLY on the
           # server -- excluding it means deploys never overwrite or delete it.
+          #
+          # Note that src/ and migrations/ ARE deployed: the pages at the web
+          # root include from src/, and migrate.php reads the .sql files from
+          # the server's filesystem. Both directories ship an .htaccess that
+          # denies direct web access to their contents.
           exclude: |
             **/.git*
             **/.git*/**
@@ -37,7 +42,7 @@ jobs:
             **/config.local.php.example
             **/README.md
             **/LICENSE
-            **/sql.txt
-            **/seed.sql
+            **/db/**
+            **/tests/**
             **/dbtest.php
             **/.DS_Store

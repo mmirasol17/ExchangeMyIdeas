@@ -1,0 +1,75 @@
+# ExchangeMyIdeas -- Apache configuration.
+#
+# Every block is wrapped in <IfModule> on purpose. This is shared hosting, and
+# an unrecognised directive would take the whole site down with a 500 rather
+# than being ignored.
+
+DirectoryIndex index.php
+Options -Indexes
+
+# ---------------------------------------------------------------------------
+# Front controller
+#
+# Anything that is not a real file or directory is handled by index.php, which
+# routes it (see src/router.php). Real files -- assets, robots.txt, the web
+# manifest -- are served directly and never touch PHP.
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^ index.php [L]
+</IfModule>
+
+# Fallback for hosts without mod_rewrite: Apache 404s, and this hands the
+# request to the same front controller. REQUEST_URI still holds the original
+# path, so routing is identical -- src/router.php resets the status to 200 when
+# it recognises the route. The site therefore works either way.
+ErrorDocument 404 /index.php
+
+# ---------------------------------------------------------------------------
+# Never serve application internals, whatever the server's default handler
+# ---------------------------------------------------------------------------
+<FilesMatch "^(config\.local\.php|.*\.sql|.*\.md)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# src/ and migrations/ ship their own .htaccess denying everything, but a
+# belt-and-braces rule here means a single missing file cannot expose them.
+RedirectMatch 404 ^/(src|migrations|tests|db)(/|$)
+
+# ---------------------------------------------------------------------------
+# Baseline security headers
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Caching for static assets. PHP responses stay uncached so a new post shows up
+# immediately.
+# ---------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/rss+xml application/xml text/plain
+</IfModule>

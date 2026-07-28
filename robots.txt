@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Operator tooling and per-post editing -- nothing for a crawler to index.
+Disallow: /moderate
+Disallow: /migrate
+Disallow: /like
+Disallow: /post/*/edit
+
+# Search is an unbounded URL space with no content of its own.
+Disallow: /search
+
+# Returns bare feed cards for scroll-loading; the real pages are linked from /.
+Disallow: /partial/
+
+# Sorted views hold the same posts in a different order.
+Disallow: /*?sort=
+
+Sitemap: https://exchangemyideas.marinmirasol.com/sitemap.xml

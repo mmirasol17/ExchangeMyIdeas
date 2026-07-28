@@ -1,0 +1,1572 @@
+/*
+ * ExchangeMyIdeas - stylesheet
+ *
+ * Design tokens mirror marinmirasol.com (TailwindCSS palette) so this
+ * subdomain reads as part of the same site. Hand-written CSS because the app
+ * is served by PHP with no build step.
+ *
+ * RESPONSIVE APPROACH
+ *   Layout is fluid first - grids that collapse, type that scales with clamp(),
+ *   flex rows that wrap - so the breakpoints only handle what fluidity cannot:
+ *
+ *     900px  two columns collapse to one; the sidebar stops sticking
+ *     640px  compact spacing, and form text goes to 16px so iOS Safari stops
+ *            zooming the viewport whenever a field is focused
+ *     420px  the last few labels give up their words for icons
+ *
+ *   Interactive targets are held at 44px on coarse pointers (Apple's HIG
+ *   minimum, close enough to Android's 48dp), and the page respects
+ *   safe-area insets so nothing hides under a notch or home indicator.
+ */
+
+:root {
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --blue-300: #93c5fd;
+  --blue-400: #60a5fa;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-800: #1e40af;
+  --blue-900: #1e3a8a;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --amber-300: #fcd34d;
+
+  --card: linear-gradient(to bottom right, var(--gray-400), var(--gray-700));
+  --shadow-lg: 0 10px 25px -8px rgb(0 0 0 / 0.45);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  --radius: 1rem;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Horizontal page padding, widened to clear a notch in landscape. */
+  --pad-x: 1.25rem;
+  --safe-l: max(var(--pad-x), env(safe-area-inset-left));
+  --safe-r: max(var(--pad-x), env(safe-area-inset-right));
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh; /* excludes mobile browser chrome, so the footer sits right */
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font);
+  color: #fff;
+  background: linear-gradient(to bottom, var(--blue-800), var(--blue-900) 40%, var(--gray-900));
+  background-attachment: fixed;
+  overflow-wrap: break-word;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* Visible only once tabbed to - lets keyboard users skip the navbar. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  border-radius: 0 0 0.5rem 0;
+  background-color: var(--blue-600);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--blue-300);
+  outline-offset: 2px;
+}
+
+/* ---------- Navbar (glassy, sticky) ---------- */
+
+.navbar {
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem var(--safe-r) 0.5rem var(--safe-l);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: rgb(31 41 55 / 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.navbar .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-weight: 700;
+  font-size: clamp(1rem, 3.5vw, 1.15rem);
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.navbar .brand-icon {
+  display: block; /* remove inline-image baseline gap so it centres in the flex row */
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.4rem;
+  flex-shrink: 0;
+}
+
+.navbar .brand-accent {
+  color: var(--blue-300);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.nav-post {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navbar .home-link {
+  color: var(--gray-200);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 200ms;
+}
+
+.navbar .home-link:hover {
+  color: var(--blue-300);
+}
+
+.home-link-short {
+  display: none;
+}
+
+/* ---------- Layout ---------- */
+
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2.5rem var(--safe-r) 2.5rem var(--safe-l);
+  flex: 1;
+}
+
+.container-narrow {
+  max-width: 760px;
+}
+
+.hero {
+  margin-bottom: 1.75rem;
+}
+
+.page-title {
+  font-size: clamp(1.6rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0 0 0.4rem;
+  text-shadow: 2px 2px 4px rgb(0 0 0 / 0.4);
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Belt and braces against horizontal scroll. Any single overflowing element --
+ * a wide ad iframe, a long token, an embed -- otherwise widens the whole
+ * document and lets the reader swipe the layout sideways, which on a phone
+ * feels like the page is broken.
+ */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.author-name,
+.mod-title,
+.app-name {
+  overflow-wrap: anywhere;
+}
+
+.page-subtitle {
+  color: var(--blue-300);
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  font-weight: 500;
+  margin: 0;
+}
+
+.hero-stats {
+  display: inline-block;
+  margin-top: 0.85rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gray-200);
+  background-color: rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(255 255 255 / 0.12);
+}
+
+/* Two-column feed + sidebar; collapses on narrow screens. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.feed {
+  min-width: 0;
+}
+
+.sidebar {
+  position: sticky;
+  top: 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.75rem;
+}
+
+.breadcrumb {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+/* ---------- Buttons ---------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: none;
+  border-radius: 0.6rem;
+  padding: 0.55rem 1rem;
+  background-color: var(--blue-500);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 200ms, background-color 200ms, box-shadow 200ms;
+}
+
+.button:hover {
+  background-color: var(--blue-600);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -6px rgb(37 99 235 / 0.7);
+}
+
+.button.secondary {
+  background-color: rgb(255 255 255 / 0.1);
+  border: 1px solid rgb(255 255 255 / 0.15);
+}
+
+.button.secondary:hover {
+  background-color: rgb(255 255 255 / 0.18);
+  box-shadow: none;
+}
+
+.button.danger {
+  background-color: rgb(239 68 68 / 0.15);
+  border: 1px solid rgb(248 113 113 / 0.55);
+  color: #fecaca;
+}
+
+.button.danger:hover {
+  background-color: rgb(239 68 68 / 0.3);
+  box-shadow: none;
+}
+
+.button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---------- Search + toolbar ---------- */
+
+.header {
+  display: flex;
+  align-items: stretch; /* the button matches the search box height */
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+#search {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0.6rem;
+  padding: 0.7rem 1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.08);
+  border: 1.5px solid rgb(255 255 255 / 0.18);
+  transition: border-color 200ms, background-color 200ms;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#search::placeholder {
+  color: var(--gray-300);
+  opacity: 0.8;
+}
+
+#search:hover {
+  background-color: rgb(255 255 255 / 0.12);
+}
+
+#search:focus {
+  outline: none;
+  border-color: var(--blue-400);
+  background-color: rgb(255 255 255 / 0.12);
+}
+
+.search-button {
+  flex-shrink: 0;
+}
+
+.search-status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: -0.5rem 0 1.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-200);
+}
+
+.clear-search {
+  color: var(--blue-300);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.clear-search:hover {
+  text-decoration: underline;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.25rem;
+  /* Narrow screens scroll the tabs sideways rather than stacking them. */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.sort-control {
+  display: inline-flex;
+  padding: 0.2rem;
+  gap: 0.2rem;
+  border-radius: 9999px;
+  background-color: rgb(255 255 255 / 0.07);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  white-space: nowrap;
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gray-200);
+  text-decoration: none;
+  transition: background-color 200ms, color 200ms;
+}
+
+.sort-btn:hover {
+  color: #fff;
+}
+
+.sort-btn.active {
+  background-color: var(--blue-500);
+  color: #fff;
+}
+
+/* ---------- Avatars ---------- */
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15);
+}
+
+.avatar-sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.72rem;
+}
+
+/* ---------- Post cards ---------- */
+
+.post {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 0.06);
+  transition: transform 250ms, box-shadow 250ms;
+  animation: fadeInUp 500ms ease both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+.post:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-2xl);
+}
+
+/* The permalink page is a destination, not a card in a list. */
+.post-full:hover {
+  transform: none;
+  box-shadow: var(--shadow-lg);
+}
+
+.post-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.post-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.author-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.date {
+  font-size: 0.75rem;
+  color: var(--blue-300);
+}
+
+.edited-mark {
+  color: var(--gray-300);
+}
+
+.post .title {
+  font-size: clamp(1.15rem, 3.5vw, 1.3rem);
+  font-weight: 700;
+  line-height: 1.3;
+  color: #fff;
+  margin: 0 0 0.6rem;
+  /* A title is user input. Without this, one long unbroken token (a URL, a
+     pasted identifier) widens the card, and with it the whole page. */
+  overflow-wrap: anywhere;
+}
+
+.post-full .title {
+  font-size: clamp(1.4rem, 5vw, 1.9rem);
+}
+
+.title-link {
+  text-decoration: none;
+}
+
+.title-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.post .body {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--gray-200);
+  margin-bottom: 1rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* Markdown rendered inside post/reply bodies */
+.body strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.body em {
+  font-style: italic;
+}
+
+.body code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  background-color: rgb(17 24 39 / 0.5);
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.body a {
+  color: var(--blue-300);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.body a:hover {
+  color: #fff;
+}
+
+.post .footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.25rem;
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+/* Icon-style actions in a post footer all share one shape. */
+.reply-toggle,
+.like-button,
+.share-button,
+.owner-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.5rem;
+  color: var(--gray-200);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 200ms, background-color 200ms;
+}
+
+.reply-toggle:hover,
+.like-button:hover,
+.share-button:hover,
+.owner-edit:hover {
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.08);
+}
+
+.no-replies {
+  font-size: 0.78rem;
+  color: var(--gray-300);
+  padding: 0 0.4rem;
+}
+
+.like-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  color: var(--gray-300);
+  transition: color 200ms, transform 200ms;
+}
+
+.like-button:hover .like-icon {
+  color: var(--red-400);
+}
+
+.like-button.liked {
+  color: #fecaca;
+  cursor: default;
+}
+
+.like-button.liked .like-icon {
+  color: var(--red-500);
+  animation: likePop 350ms ease;
+}
+
+@keyframes likePop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.owner-actions {
+  display: inline-flex;
+}
+
+.owner-actions[hidden] {
+  display: none;
+}
+
+/* Honeypot field - hidden from humans, present for bots */
+.hp {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Topic tags ---------- */
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--blue-300);
+  text-decoration: none;
+  background-color: rgb(59 130 246 / 0.12);
+  border: 1px solid rgb(147 197 253 / 0.28);
+  transition: background-color 200ms, color 200ms;
+}
+
+.tag-chip:hover {
+  background-color: rgb(59 130 246 / 0.28);
+  color: #fff;
+}
+
+.tag-count {
+  font-size: 0.68rem;
+  color: var(--gray-300);
+}
+
+/*
+ * Computed emoji (see src/emoji.php). Sized in em so they track the text they
+ * sit beside, and given an explicit emoji font stack so a system that would
+ * otherwise fall back to a monochrome glyph still renders them in colour.
+ */
+.tag-emoji,
+.title-emoji,
+.empty-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-style: normal;
+  line-height: 1;
+}
+
+.tag-emoji {
+  font-size: 0.9em;
+}
+
+.title-emoji {
+  font-size: 0.85em;
+  margin-right: 0.15em;
+  opacity: 0.9;
+}
+
+.empty-emoji {
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 0.6rem;
+}
+
+.sidebar-note {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--gray-400);
+  margin: 0.5rem 0 0;
+}
+
+/* "Under review" marker on a flagged item */
+.flag-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--amber-300);
+  background-color: rgb(252 211 77 / 0.12);
+  border: 1px solid rgb(252 211 77 / 0.35);
+}
+
+/* ---------- Replies ---------- */
+
+.replies.collapsed {
+  display: none;
+}
+
+.replies:not(:empty):not(.collapsed) {
+  margin-top: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 0.15);
+  padding-top: 0.75rem;
+}
+
+.reply {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.65rem 0;
+}
+
+.reply + .reply {
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.reply-content {
+  min-width: 0;
+}
+
+.reply-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+  flex-wrap: wrap;
+}
+
+.reply .body {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--gray-200);
+  overflow-wrap: anywhere;
+}
+
+.more-replies {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--blue-300);
+  text-decoration: none;
+}
+
+.more-replies:hover {
+  text-decoration: underline;
+}
+
+/* Full thread on the permalink page */
+.thread {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgb(255 255 255 / 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.reply-card + .reply-card {
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+/* ---------- Reply form ---------- */
+
+.reply-form {
+  background: var(--card);
+  border: 1px solid rgb(255 255 255 / 0.06);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  margin: 0 0 1.25rem;
+  padding: 1.5rem;
+}
+
+.reply-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.35rem;
+}
+
+.reply-input {
+  display: block;
+  width: 100%;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.9rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.08);
+  border: 1.5px solid rgb(255 255 255 / 0.18);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.reply-input::placeholder {
+  color: var(--gray-300);
+  opacity: 0.8;
+}
+
+.reply-input:hover,
+.reply-input:focus {
+  outline: none;
+  border-color: var(--blue-400);
+}
+
+textarea.reply-input {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.reply-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ---------- Pager ---------- */
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1.75rem 0 0.5rem;
+}
+
+.pager-link,
+.pager-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-200);
+  text-decoration: none;
+  background-color: rgb(255 255 255 / 0.07);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  transition: background-color 200ms, color 200ms;
+}
+
+.pager-link:hover,
+.pager-num:hover {
+  background-color: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+
+.pager-link.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.pager-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pager-num.active {
+  background-color: var(--blue-500);
+  border-color: var(--blue-500);
+  color: #fff;
+}
+
+.pager-gap {
+  color: var(--gray-400);
+  padding: 0 0.15rem;
+}
+
+/* ---------- Scroll-loading ---------- */
+
+/*
+ * An invisible probe placed after the feed. IntersectionObserver watches it
+ * with a 600px margin, so the next page starts loading before it is reached.
+ */
+.feed-sentinel {
+  height: 1px;
+}
+
+.feed-status,
+.feed-end {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-300);
+}
+
+.feed-end {
+  color: var(--gray-400);
+  font-weight: 500;
+}
+
+.feed-status[hidden],
+.feed-end[hidden] {
+  display: none;
+}
+
+.feed-spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 0.2);
+  border-top-color: var(--blue-300);
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Empty state ---------- */
+
+.empty-state {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--gray-200);
+  border: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.empty-state .page-title {
+  margin-bottom: 0.75rem;
+}
+
+/* ---------- Sidebar cards ---------- */
+
+.sidebar-card {
+  background: linear-gradient(to bottom right, rgb(55 65 81 / 0.9), rgb(31 41 55 / 0.9));
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 1.1rem 1.15rem;
+}
+
+.sidebar-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-300);
+  margin-bottom: 0.9rem;
+}
+
+.app-item {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.6rem;
+  margin: 0 -0.6rem;
+  border-radius: 0.7rem;
+  text-decoration: none;
+  transition: background-color 200ms;
+}
+
+.app-item:hover {
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+.app-item:hover .app-arrow {
+  transform: translateX(3px);
+}
+
+.app-icon {
+  flex-shrink: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.6rem;
+  object-fit: cover;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
+}
+
+.app-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.app-arrow {
+  display: inline-block;
+  color: var(--blue-300);
+  transition: transform 200ms;
+}
+
+.app-tag {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--gray-300);
+  margin-top: 0.15rem;
+}
+
+.app-all {
+  display: inline-block;
+  margin-top: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--blue-300);
+  text-decoration: none;
+}
+
+.app-all:hover {
+  text-decoration: underline;
+}
+
+.sidebar-text {
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--gray-300);
+  margin: 0 0 0.75rem;
+}
+
+.sidebar-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--blue-300);
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Ad slot ---------- */
+
+.ad-slot {
+  position: relative;
+  border: 1px dashed rgb(255 255 255 / 0.2);
+  border-radius: var(--radius);
+  background-color: rgb(255 255 255 / 0.03);
+  padding: 1.25rem 1rem 1rem;
+  text-align: center;
+  overflow: hidden; /* an ad unit must never widen the page */
+}
+
+/* In-feed ad sits between posts */
+.feed > .ad-slot {
+  margin-bottom: 1.25rem;
+}
+
+.ad-label {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-400);
+}
+
+.ad-placeholder {
+  min-height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-400);
+  font-size: 0.85rem;
+}
+
+/* ---------- Forms ---------- */
+
+.post-form {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.post-form .label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.35rem;
+}
+
+.post-form .field {
+  display: block;
+  width: 100%;
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.8rem;
+  margin-bottom: 1.25rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #fff;
+  background-color: rgb(255 255 255 / 0.08);
+  border: 1.5px solid rgb(255 255 255 / 0.18);
+  transition: border-color 200ms;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.post-form .field::placeholder {
+  color: var(--gray-300);
+  opacity: 0.8;
+}
+
+.post-form .field:hover,
+.post-form .field:focus {
+  outline: none;
+  border-color: var(--blue-400);
+}
+
+/* Roomy on a laptop, but never so tall it swallows a phone screen. */
+.post-form textarea.field {
+  min-height: clamp(9rem, 33vh, 22rem);
+  resize: vertical;
+  margin-bottom: 0.4rem;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--gray-400);
+  margin-bottom: 1.25rem;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--gray-300);
+  margin: 0 0 1.25rem;
+}
+
+.form-hint code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  padding: 0.05rem 0.3rem;
+  border-radius: 0.3rem;
+  background-color: rgb(17 24 39 / 0.5);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.form-actions-split {
+  justify-content: space-between;
+}
+
+.form-error,
+.form-notice {
+  border-radius: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.form-error {
+  background-color: rgb(239 68 68 / 0.15);
+  border: 1px solid rgb(248 113 113 / 0.6);
+  color: #fecaca;
+}
+
+.form-notice {
+  background-color: rgb(59 130 246 / 0.15);
+  border: 1px solid rgb(147 197 253 / 0.5);
+  color: #dbeafe;
+}
+
+/* Long-form text (privacy policy) */
+.prose {
+  color: var(--gray-200);
+  line-height: 1.7;
+}
+
+.prose h2 {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.prose p {
+  margin: 0 0 0.9rem;
+  font-size: 0.95rem;
+}
+
+.prose a {
+  color: var(--blue-300);
+  text-decoration: underline;
+}
+
+/* ---------- Moderation queue ---------- */
+
+.mod-section {
+  margin-bottom: 2.25rem;
+}
+
+.mod-item {
+  animation: none;
+}
+
+.mod-item:hover {
+  transform: none;
+  box-shadow: var(--shadow-lg);
+}
+
+.mod-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.mod-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.mod-title:hover {
+  text-decoration: underline;
+}
+
+.mod-score {
+  flex-shrink: 0;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--amber-300);
+  background-color: rgb(252 211 77 / 0.12);
+  border: 1px solid rgb(252 211 77 / 0.35);
+}
+
+.mod-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.mod-reason {
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fecaca;
+  background-color: rgb(239 68 68 / 0.14);
+  border: 1px solid rgb(248 113 113 / 0.4);
+}
+
+/* Queued content can be long; cap it so the list stays scannable. */
+.mod-body {
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.mod-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  transform: translate(-50%, 1rem);
+  z-index: 80;
+  max-width: min(28rem, calc(100vw - 2rem));
+  padding: 0.7rem 1.1rem;
+  border-radius: 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  color: #fff;
+  background-color: rgb(31 41 55 / 0.95);
+  border: 1px solid rgb(255 255 255 / 0.15);
+  box-shadow: var(--shadow-2xl);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms, transform 250ms;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+  background-color: rgb(31 41 55 / 0.85);
+  color: #fff;
+  text-align: center;
+  padding: 1.5rem var(--safe-r) calc(1.5rem + env(safe-area-inset-bottom)) var(--safe-l);
+  font-size: 0.875rem;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.developer {
+  margin-bottom: 0.5rem;
+  color: var(--gray-200);
+}
+
+.footer-link {
+  color: var(--blue-300);
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+.copy {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+}
+
+input[type="submit"] {
+  display: none;
+}
+
+/* ---------- Animations ---------- */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===========================================================================
+   Responsive
+   ======================================================================== */
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  /* A fixed background attachment forces a repaint on every scroll frame and
+     is a well-known jank source on mobile Safari. */
+  body {
+    background-attachment: scroll;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --pad-x: 1rem;
+  }
+
+  .container {
+    padding-top: 1.75rem;
+    padding-bottom: 1.75rem;
+  }
+
+  .navbar {
+    min-height: 3.5rem;
+    gap: 0.5rem;
+  }
+
+  .nav-actions {
+    gap: 0.5rem;
+  }
+
+  .home-link-full {
+    display: none;
+  }
+
+  .home-link-short {
+    display: inline;
+  }
+
+  .post,
+  .thread,
+  .reply-form,
+  .post-form {
+    padding: 1.15rem;
+    border-radius: 0.85rem;
+  }
+
+  .toolbar {
+    justify-content: flex-start;
+  }
+
+  /* iOS Safari zooms the viewport when a focused field is under 16px. Holding
+     every input at 16px keeps the page from lurching on tap. */
+  #search,
+  .reply-input,
+  .post-form .field {
+    font-size: 16px;
+  }
+
+  .pager {
+    justify-content: center;
+  }
+
+  .mod-actions .button {
+    flex: 1 1 auto;
+  }
+}
+
+/*
+ * Only the narrowest phones give up the button labels. Measured against the
+ * real layout: at 390px "Post" and "Search" still fit beside the brand, and an
+ * unlabelled icon button is worse than a slightly tighter row.
+ */
+@media (max-width: 380px) {
+  .search-button-text,
+  .nav-post-text,
+  .pager-word {
+    display: none;
+  }
+
+  .search-button {
+    padding-inline: 0.85rem;
+  }
+
+  .footer-actions {
+    gap: 0.1rem;
+  }
+}
+
+/* On a phone the card footer stacks, which turns Reply into a full-width
+   target instead of a small button crowded against the action row. */
+@media (max-width: 420px) {
+  .post .footer {
+    align-items: stretch;
+  }
+
+  .reply-button {
+    width: 100%;
+  }
+}
+
+/* Touch devices: no hover lift, and fingers need bigger targets than a mouse. */
+@media (hover: none) {
+  .post:hover,
+  .button:hover {
+    transform: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .button,
+  .sort-btn,
+  .pager-link,
+  .pager-num,
+  .reply-toggle,
+  .like-button,
+  .share-button,
+  .owner-edit,
+  .tag-chip {
+    min-height: 44px;
+  }
+
+  .tag-chip {
+    padding-block: 0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post {
+    animation: none;
+  }
+
+  * {
+    transition: none !important;
+    animation-duration: 0.01ms !important;
+  }
+}

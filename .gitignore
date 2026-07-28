@@ -1,6 +1,9 @@
 # Local database credentials -- never commit
 config.local.php
 
+# Claude Code local settings -- never commit
+.claude/settings.local.json
+
 # OS cruft
 .DS_Store
 Thumbs.db

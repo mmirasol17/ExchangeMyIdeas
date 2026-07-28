@@ -1836,6 +1836,25 @@ input[type="submit"] {
   }
 }
 
+/*
+ * The whole feed card opens the reading modal.
+ *
+ * The class is added by modal.js, never in the markup: without JavaScript the
+ * card is not clickable, and a pointer cursor would be promising something
+ * that does not happen. Interactive children keep their own affordance -- the
+ * click handler lets their events through untouched.
+ */
+.cards-clickable .post {
+  cursor: pointer;
+}
+
+.cards-clickable .post .body a,
+.cards-clickable .post .tag-chip,
+.cards-clickable .post button,
+.cards-clickable .post .reply-button {
+  cursor: pointer;
+}
+
 /* ===========================================================================
    Reading modal
    ======================================================================== */

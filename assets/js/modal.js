@@ -163,8 +163,15 @@
     if (lastFocused && lastFocused.focus) lastFocused.focus();
   }
 
+  /* Things inside a card that own their click and must keep it. */
+  var INTERACTIVE = "a, button, input, textarea, select, label, [role='button']";
+
   window.addEventListener("DOMContentLoaded", function () {
-    if (typeof fetch !== "function" || !document.querySelector(".feed")) return;
+    var feedItems = document.getElementById("feed-items");
+    if (typeof fetch !== "function" || !feedItems) return;
+
+    // Only now is the card genuinely clickable, so only now does it say so.
+    feedItems.classList.add("cards-clickable");
 
     document.addEventListener("click", function (event) {
       // Respect every way a reader might mean "not here": new tab, new window,
@@ -172,14 +179,34 @@
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
-      var link = event.target.closest ? event.target.closest("a.title-link") : null;
-      if (!link) return;
+      var target = event.target;
+      if (!target || !target.closest) return;
 
-      var card = link.closest(".post");
+      /*
+       * Scoped to #feed-items, not ".post". The permalink page also renders a
+       * .post inside a .feed, and matching there would let a post open a modal
+       * of itself.
+       */
+      var card = target.closest("#feed-items .post");
       if (!card || !card.id) return;
 
+      var titleLink = card.querySelector("a.title-link");
+      if (!titleLink) return;
+
+      // The title is a real link and always opens the modal. Everywhere else on
+      // the card counts only when the click was not meant for something else.
+      if (!target.closest("a.title-link")) {
+        // Likes, replies, share, tag links, the Reply button, and links written
+        // into the post body all keep their own behaviour.
+        if (target.closest(INTERACTIVE)) return;
+
+        // Finishing a text selection is not a click on the card.
+        var selection = window.getSelection && window.getSelection();
+        if (selection && String(selection).trim() !== "") return;
+      }
+
       event.preventDefault();
-      open(card.id, link.getAttribute("href"), link.textContent.trim());
+      open(card.id, titleLink.getAttribute("href"), titleLink.textContent.trim());
     });
 
     document.addEventListener("keydown", onKeydown);

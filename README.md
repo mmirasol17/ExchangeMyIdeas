@@ -179,15 +179,25 @@ and a privacy hole.
 
 ### Reading modal
 
-Clicking a post title in the feed opens it in a scrollable overlay instead of
-navigating — a long post gets its own scroll container without costing the
-reader their place in the feed.
+Clicking **anywhere on a feed card** opens the post in a scrollable overlay
+instead of navigating — a long post gets its own scroll container without
+costing the reader their place in the feed.
 
-Titles remain ordinary links to `/post/{id}`. The click is intercepted only for
-a plain left-click with fetch available, so middle-click, Cmd-click, "open in
-new tab", and crawlers all get the real page. While open, the URL is pushed to
-the permalink, so the address bar, Back button, and copy-link all behave as if
-it were a page.
+"Anywhere" has to be careful, because a card is full of things that own their
+own click. Likes, share, tag chips, the Reply button, and links written into
+the post body all keep their behaviour; so does finishing a text selection. The
+title stays an ordinary link to `/post/{id}`, which is what keeps the post
+reachable by keyboard and by crawlers.
+
+The handler is scoped to the feed container specifically, so the permalink page
+— which renders the same `.post` markup — cannot open a modal of itself.
+
+The click is intercepted only for a plain left-click with `fetch` available, so
+middle-click, Cmd-click, "open in new tab", and crawlers all get the real page.
+While open, the URL is pushed to the permalink, so the address bar, Back button,
+and copy-link all behave as if it were a page. The pointer cursor is applied by
+JavaScript, never in the markup — without it the card is not clickable and
+should not claim to be.
 
 ### Scroll-loaded pagination
 

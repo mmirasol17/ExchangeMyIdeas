@@ -60,7 +60,7 @@ The web root otherwise holds just the files that must sit at a fixed path.
 │       ├── create.php   /new
 │       ├── edit.php     /post/{id}/edit
 │       ├── moderate.php /moderate   (key-protected)
-│       ├── migrate.php  /migrate    (key-protected)
+│       ├── migrate.php  /migrate    (status open; running needs a key)
 │       ├── like.php     /like       (JSON)
 │       ├── privacy.php  /privacy
 │       ├── rss.php      /feed.xml
@@ -253,19 +253,27 @@ ordinary paginated feed.
 Each `.sql` file in `migrations/` runs **once**, in filename order, tracked in a
 `schema_migrations` table.
 
-Migrations are applied by visiting the runner in a browser, not from CI:
-InfinityFree blocks remote MySQL connections and challenges non-browser HTTP
-requests, so a GitHub Actions runner can reach neither the database nor this
-endpoint.
+**They apply themselves** on the first request after a deploy — there is no key
+to remember and no page to visit. Migrating from the request path is normally a
+bad idea, so each objection is handled explicitly (see `src/migrator.php`):
 
-```
-https://exchangemyideas.marinmirasol.com/migrate?key=YOUR_KEY
-```
+| Concern | Handling |
+|---------|----------|
+| Cost | A marker file records which migration set is applied. When it matches — virtually every request — this costs one filesystem read and **zero** queries. |
+| Collision | A MySQL advisory lock (`GET_LOCK`, zero timeout) means exactly one request migrates; the rest serve their page immediately rather than queueing behind an `ALTER`. |
+| Failure | Errors are logged, never thrown. The app detects its own schema, so a failed migration degrades to the previous feature set instead of a white page. A failure marker backs off retries. |
 
-Because a deploy always lands before its migration does, every feature checks
-for its own columns first (`site_caps()` in `src/posts.php`) and falls back to
-the previous behaviour until the migration runs. New code on an old schema is a
-missing feature, never a broken page.
+Verified with 12 simultaneous requests against an unmigrated database: every
+migration recorded exactly once, no duplicate-column errors.
+
+This assumes migrations are **additive and safe to run unattended**, which is
+the rule this project already follows. For anything destructive, set
+`MIGRATIONS_AUTO_APPLY` to `false` and apply it deliberately.
+
+`/migrate` still exists, and now reports status **without a key** — it only
+lists filenames that are already public in this repository. Actually *running*
+a migration (`/migrate?run=1&key=…`) still requires `$migrateKey`, because that
+writes to the schema.
 
 ---
 

@@ -1,23 +1,23 @@
 <?php
 /*
- * Database migration runner. Serves /migrate?key=...
+ * Migration status and manual runner. Serves /migrate.
  *
- * Applies any not-yet-applied .sql files in ./migrations, in filename order,
- * and records them in a schema_migrations table so each runs exactly once.
+ * Migrations normally apply themselves on the first request after a deploy
+ * (see migrator.php), so this page exists for visibility and for the cases
+ * auto-apply deliberately does not cover:
  *
- * WHY THIS IS BROWSER-TRIGGERED, NOT AUTOMATED IN CI:
- *   InfinityFree does not allow remote MySQL connections, so a GitHub Actions
- *   runner cannot reach the database to run migrations directly. It also serves
- *   an anti-bot challenge to non-browser HTTP requests, which blocks curl-ing
- *   this endpoint from CI. So the flow is:
- *     1. Add a migration file, commit, push -> it auto-deploys over FTP.
- *     2. Visit this page ONCE in your browser to apply it:
- *        https://exchangemyideas.marinmirasol.com/migrate?key=YOUR_KEY
+ *   - MIGRATIONS_AUTO_APPLY has been turned off for a risky change.
+ *   - A migration failed and you want to see why, or retry now rather than
+ *     waiting out the back-off.
  *
- * SECURITY:
- *   Protected by a secret key set as $migrateKey in config.local.php (which
- *   lives only on the server, never in git). If $migrateKey is unset, this
- *   endpoint is disabled.
+ * ACCESS
+ *   Reporting status needs no key: it lists filenames that are already public
+ *   in the repository, and says nothing about the data. Actually *running* a
+ *   migration still requires $migrateKey, because that writes to the schema.
+ *
+ *   That split is the point of this page. The common case -- "did my migration
+ *   land?" -- no longer depends on a secret nobody can read back out of
+ *   GitHub, while the privileged action stays privileged.
  */
 
 global $migrateKey;
@@ -26,53 +26,72 @@ header('Content-Type: text/plain; charset=utf-8');
 header('X-Robots-Tag: noindex');
 
 $provided = (string) ($_GET['key'] ?? '');
-if (empty($migrateKey) || !hash_equals((string) $migrateKey, $provided)) {
-  http_response_code(403);
-  exit("Forbidden.\n");
-}
+$hasKey = !empty($migrateKey) && hash_equals((string) $migrateKey, $provided);
+$wantsRun = isset($_GET['run']);
 
-// Track which migrations have run.
-$conn->exec('
-  CREATE TABLE IF NOT EXISTS schema_migrations (
-    filename VARCHAR(255) NOT NULL,
-    applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (filename)
-  )
-');
-
-$applied = array_flip(
-  $conn->query('SELECT filename FROM schema_migrations')->fetchAll(PDO::FETCH_COLUMN)
-);
-
-// dirname twice: this file is src/pages/, migrations/ is at the project root.
-$files = glob(dirname(__DIR__, 2) . '/migrations/*.sql') ?: [];
-sort($files); // filename order -> run 001_, then 002_, ...
-
-$ran = [];
-foreach ($files as $file) {
-  $name = basename($file);
-  if (isset($applied[$name])) {
-    continue;
+// --- Run, if asked and allowed --------------------------------------------
+if ($wantsRun) {
+  if (!$hasKey) {
+    http_response_code(403);
+    exit("Forbidden: running migrations requires ?key=...\n");
   }
 
-  $sql = file_get_contents($file);
-  if ($sql === false || trim($sql) === '') {
-    continue;
-  }
+  @unlink(migrations_dir() . '/.failed'); // an explicit run clears the back-off
+  $result = migrations_apply($conn);
 
-  try {
-    $conn->exec($sql);
-    $stmt = $conn->prepare('INSERT INTO schema_migrations (filename) VALUES (?)');
-    $stmt->execute([$name]);
-    $ran[] = $name;
-  } catch (PDOException $ex) {
+  if ($result['failed'] !== null) {
     http_response_code(500);
-    echo "FAILED on {$name}:\n{$ex->getMessage()}\n\n";
-    echo $ran ? "Applied before failure:\n- " . implode("\n- ", $ran) . "\n" : "Nothing applied before failure.\n";
+    echo "FAILED on {$result['failed']}:\n{$result['error']}\n\n";
+    echo $result['applied']
+      ? "Applied before failure:\n- " . implode("\n- ", $result['applied']) . "\n"
+      : "Nothing applied before failure.\n";
     return;
   }
+
+  @file_put_contents(migrations_dir() . '/.applied', migrations_signature(migration_files()));
+  echo $result['applied']
+    ? 'Applied ' . count($result['applied']) . " migration(s):\n- " . implode("\n- ", $result['applied']) . "\n"
+    : "No pending migrations.\n";
+  return;
 }
 
-echo $ran
-  ? 'Applied ' . count($ran) . " migration(s):\n- " . implode("\n- ", $ran) . "\n"
-  : "No pending migrations. Database is up to date.\n";
+// --- Otherwise report ------------------------------------------------------
+$status = migrations_status($conn);
+
+if ($status['error'] !== null) {
+  http_response_code(500);
+  echo "Could not read migration state:\n{$status['error']}\n";
+  return;
+}
+
+echo "Schema migrations\n";
+echo "=================\n\n";
+
+echo 'Auto-apply: ' . (MIGRATIONS_AUTO_APPLY ? "on\n" : "off\n");
+
+$failedAt = (int) @file_get_contents(migrations_dir() . '/.failed');
+if ($failedAt > 0) {
+  echo 'Last attempt FAILED ' . (time() - $failedAt) . "s ago - see the server error log.\n";
+}
+echo "\n";
+
+echo 'Applied (' . count($status['applied']) . "):\n";
+foreach ($status['applied'] as $name) {
+  echo "  [x] $name\n";
+}
+if (!$status['applied']) {
+  echo "  (none)\n";
+}
+
+echo "\nPending (" . count($status['pending']) . "):\n";
+foreach ($status['pending'] as $name) {
+  echo "  [ ] $name\n";
+}
+if (!$status['pending']) {
+  echo "  (none - the database is up to date)\n";
+}
+
+if ($status['pending']) {
+  echo "\nThese normally apply themselves on the next request.\n";
+  echo "To force a run now: /migrate?run=1&key=YOUR_KEY\n";
+}

@@ -7,3 +7,7 @@ config.local.php
 # OS cruft
 .DS_Store
 Thumbs.db
+
+# Runtime markers written by the auto-migrator (server-side state, not source)
+migrations/.applied
+migrations/.failed

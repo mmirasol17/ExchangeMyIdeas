@@ -238,5 +238,10 @@
     // The character counter lives outside the editor; keep it below the panes.
     var counter = document.getElementById("char-count");
     if (counter) host.appendChild(counter);
+
+    // The written-out syntax list is only there for readers who never get this
+    // toolbar. Now that it exists, the list is noise.
+    var syntaxHelp = document.getElementById("markdown-help");
+    if (syntaxHelp) syntaxHelp.hidden = true;
   });
 })();

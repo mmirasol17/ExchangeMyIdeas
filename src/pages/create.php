@@ -158,9 +158,18 @@ render_head('Share an idea - ExchangeMyIdeas', ['create_blog.js', 'editor.js'], 
       />
 
       <p class="form-hint">
-        Markdown: headings, <strong>**bold**</strong>, <em>*italic*</em>,
-        <code>`code`</code>, <code>```fenced blocks```</code>, lists, quotes, and
-        <code>[links](https://&hellip;)</code>. Topics are added automatically.
+        <?php /*
+          The syntax list is redundant once the toolbar and live preview are
+          there, so editor.js hides this span the moment it mounts. It stays in
+          the markup because without JavaScript there is no toolbar and no
+          preview -- just a textarea that silently happens to accept Markdown.
+        */ ?>
+        <span id="markdown-help">
+          Supports Markdown &mdash; <code>**bold**</code>, <code>*italic*</code>,
+          <code>`code`</code>, <code># headings</code>, lists, quotes, and
+          <code>[links](https://&hellip;)</code>.
+        </span>
+        Topics are added automatically from what you write.
         <?php if ($caps['editing']): ?>
           You can edit or delete this post afterwards from this browser.
         <?php endif; ?>

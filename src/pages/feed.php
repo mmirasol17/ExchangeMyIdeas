@@ -100,7 +100,7 @@ if (!$isSearch) {
   );
 }
 
-render_head($title, ['index.js', 'feed-scroll.js'], [
+render_head($title, ['index.js', 'feed-scroll.js', 'modal.js'], [
   'description' => $description,
   'canonical'   => $canonical,
   // Search is an unbounded URL space with no content of its own. Paged feeds

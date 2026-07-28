@@ -78,6 +78,8 @@ function routes(): array {
     ['GET',       "#^/topic/($slug)/page/([1-9]\d{0,5})$#", 'feed',         ['tag', 'page']],
     ['GET',       '#^/search$#',                            'feed',         []],
     ['GET',       '#^/partial/feed$#',                      'feed_partial', []],
+    ['GET',       "#^/partial/post/($uuid)$#",              'post_partial', ['id']],
+    ['POST',      '#^/preview$#',                           'preview',      []],
 
     ['GET|POST',  "#^/post/($uuid)$#",                      'post',         ['id']],
     ['GET|POST',  "#^/post/($uuid)/edit$#",                 'edit',         ['id']],

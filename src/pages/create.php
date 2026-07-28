@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
-render_head('Share an idea - ExchangeMyIdeas', 'create_blog.js', [
+render_head('Share an idea - ExchangeMyIdeas', ['create_blog.js', 'editor.js'], [
   'description' => 'Write and share an idea on ExchangeMyIdeas. No account needed.',
   'canonical'   => '/new',
 ]);
@@ -158,7 +158,8 @@ render_head('Share an idea - ExchangeMyIdeas', 'create_blog.js', [
       />
 
       <p class="form-hint">
-        Supports <code>**bold**</code>, <code>*italic*</code>, <code>`code`</code>, and
+        Markdown: headings, <strong>**bold**</strong>, <em>*italic*</em>,
+        <code>`code`</code>, <code>```fenced blocks```</code>, lists, quotes, and
         <code>[links](https://&hellip;)</code>. Topics are added automatically.
         <?php if ($caps['editing']): ?>
           You can edit or delete this post afterwards from this browser.

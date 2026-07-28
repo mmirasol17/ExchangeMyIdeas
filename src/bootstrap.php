@@ -10,6 +10,7 @@
 
 // Pure helpers first: nothing below works without escaping and formatting.
 require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/markdown.php';
 require_once __DIR__ . '/urls.php';
 require_once __DIR__ . '/emoji.php';
 

@@ -16,6 +16,8 @@
  * worse than no filter, so those cases are pinned here on purpose.
  */
 
+require __DIR__ . '/../src/helpers.php';
+require __DIR__ . '/../src/markdown.php';
 require __DIR__ . '/../src/moderation.php';
 require __DIR__ . '/../src/tags.php';
 require __DIR__ . '/../src/emoji.php';
@@ -225,6 +227,135 @@ foreach (['ai', 'legacy-code', 'beekeeping', 'zzunknown'] as $slug) {
 foreach ([activity_emoji(0), activity_emoji(1), activity_emoji(30)] as $glyph) {
   check(!str_contains($glyph, "\u{FE0F}"), 'activity icons need no variation selector');
 }
+
+// ---------------------------------------------------------------------------
+section('Markdown - structure renders');
+// ---------------------------------------------------------------------------
+
+$md = fn(string $s): string => render_markdown($s);
+
+check(str_contains($md('# Title'), '<h3>Title</h3>'), 'h1 maps to h3 (page title owns h1)');
+check(str_contains($md('### Deep'), '<h5>Deep</h5>'), 'heading depth is preserved');
+check(str_contains($md("- one\n- two"), '<ul><li>one</li><li>two</li></ul>'), 'bullet list');
+check(str_contains($md("1. one\n2. two"), '<ol><li>one</li><li>two</li></ol>'), 'ordered list');
+check(str_contains($md('> quoted'), '<blockquote>quoted</blockquote>'), 'blockquote');
+check(str_contains($md("```\ncode()\n```"), '<pre><code>code()</code></pre>'), 'fenced code block');
+check(str_contains($md('---'), '<hr />'), 'horizontal rule');
+check(str_contains($md('plain text'), '<p>plain text</p>'), 'paragraph');
+check(str_contains($md('**bold**'), '<strong>bold</strong>'), 'bold');
+check(str_contains($md('*italic*'), '<em>italic</em>'), 'italic');
+check(str_contains($md('***both***'), '<strong><em>both</em></strong>'), 'bold italic');
+check(str_contains($md('~~gone~~'), '<del>gone</del>'), 'strikethrough');
+check(str_contains($md('`inline`'), '<code>inline</code>'), 'inline code');
+check(
+  str_contains($md('[docs](https://example.com)'), '<a href="https://example.com"'),
+  'link'
+);
+check(str_contains($md("a\nb"), '<br />'), 'a single newline is a line break');
+check(
+  substr_count($md("para one\n\npara two"), '<p>') === 2,
+  'a blank line starts a new paragraph'
+);
+check(
+  str_contains($md("text\n- item"), '<ul>'),
+  'a list interrupts an open paragraph'
+);
+
+// ---------------------------------------------------------------------------
+section('Markdown - injection is impossible');
+// ---------------------------------------------------------------------------
+
+/*
+ * render_markdown() output is echoed unescaped into the page, so it is the one
+ * function where a mistake becomes stored XSS for every later visitor. The
+ * original class project shipped exactly that bug. These cases stay pinned.
+ */
+$attacks = [
+  'raw script tag'        => '<script>alert(1)</script>',
+  'img onerror'           => '<img src=x onerror=alert(1)>',
+  'svg onload'            => '<svg onload=alert(1)>',
+  'javascript: link'      => '[click](javascript:alert(1))',
+  'data: link'            => '[click](data:text/html,<script>alert(1)</script>)',
+  'vbscript: link'        => '[click](vbscript:msgbox(1))',
+  'attribute break-out'   => '[x](https://a.com" onmouseover="alert(1))',
+  'script inside code'    => '`<script>alert(1)</script>`',
+  'script in fence'       => "```\n<script>alert(1)</script>\n```",
+  'script in heading'     => '# <script>alert(1)</script>',
+  'script in quote'       => '> <script>alert(1)</script>',
+  'script in list'        => '- <script>alert(1)</script>',
+  'html entity smuggling' => '&lt;script&gt;alert(1)&lt;/script&gt;',
+  'nul placeholder forge' => "\x00C0\x00 and \x00L0\x00",
+];
+
+$allowed = ['p','br','strong','em','del','code','pre','h3','h4','h5','h6','ul','ol','li','blockquote','hr','a'];
+
+/*
+ * Inspect the HTML structure, not the text.
+ *
+ * A substring search is the wrong tool here: correctly escaped output legitimately
+ * *contains* the string "onerror=alert(1)" as inert text inside &lt;img …&gt;, and a
+ * rejected "[x](javascript:…)" legitimately still reads "javascript:" as plain text.
+ * Grepping for those flags working code as broken. What actually matters is whether
+ * a real tag, a real event-handler attribute, or a real non-http href reaches the
+ * document -- so that is what this checks.
+ *
+ * @return string[] problems, empty when the HTML is inert
+ */
+function html_problems(string $html, array $allowed): array {
+  $problems = [];
+  preg_match_all('/<\s*\/?\s*([a-z0-9]+)((?:[^>"]|"[^"]*")*)>/i', $html, $tags, PREG_SET_ORDER);
+
+  foreach ($tags as $tag) {
+    $name = strtolower($tag[1]);
+    $attrs = $tag[2] ?? '';
+
+    if (!in_array($name, $allowed, true)) {
+      $problems[] = "tag <$name>";
+    }
+    if (preg_match('/\son[a-z]+\s*=/i', $attrs)) {
+      $problems[] = "event handler on <$name>";
+    }
+    if (preg_match('/\bhref\s*=\s*"([^"]*)"/i', $attrs, $href)
+      && !preg_match('#^https?://#i', html_entity_decode($href[1], ENT_QUOTES, 'UTF-8'))) {
+      $problems[] = "non-http href: {$href[1]}";
+    }
+    if (preg_match('/\bsrc\s*=/i', $attrs)) {
+      $problems[] = "src attribute on <$name>";
+    }
+  }
+  return $problems;
+}
+
+foreach ($attacks as $label => $payload) {
+  $problems = html_problems(render_markdown($payload), $allowed);
+  check($problems === [], "no executable markup from: $label", implode('; ', $problems));
+}
+
+// Every tag in the output must be one this renderer chose to write.
+$messy = render_markdown(
+  "# Head\n\ntext **b** *i* `c` [l](https://e.com)\n\n- a\n- b\n\n> q\n\n```\nx\n```\n\n---"
+);
+preg_match_all('/<\s*\/?\s*([a-z0-9]+)/i', $messy, $tags);
+$unexpected = array_values(array_unique(array_diff(array_map('strtolower', $tags[1]), $allowed)));
+check($unexpected === [], 'output contains only allow-listed tags', implode(',', $unexpected));
+
+// A link's href must survive intact, since the URL is escaped into an attribute.
+$linkOut = render_markdown('[q](https://example.com/a?b=1&c=2)');
+check(str_contains($linkOut, 'href="https://example.com/a?b=1&amp;c=2"'), 'link URL is attribute-escaped');
+check(str_contains($linkOut, 'rel="noopener noreferrer nofollow"'), 'external links are rel-guarded');
+
+// ---------------------------------------------------------------------------
+section('Markdown - excerpts strip the syntax');
+// ---------------------------------------------------------------------------
+
+$rich = "# Heading\n\nSome **bold** and `code` and [a link](https://e.com).\n\n- item one\n- item two\n\n> a quote";
+$ex = post_excerpt($rich, 200);
+foreach (['#', '**', '`', '](', '- ', '>'] as $marker) {
+  check(!str_contains($ex, $marker), "excerpt drops \"$marker\"", $ex);
+}
+check(str_contains($ex, 'Heading') && str_contains($ex, 'bold'), 'excerpt keeps the words', $ex);
+check(post_excerpt(str_repeat('word ', 200), 50) !== '', 'long input still yields an excerpt');
+check(mb_strlen(post_excerpt(str_repeat('word ', 200), 50)) <= 55, 'excerpt respects its length budget');
 
 // ---------------------------------------------------------------------------
 section('URLs - one canonical spelling per page');

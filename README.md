@@ -157,6 +157,38 @@ SHA-256 hash server-side. "Logged in" here means "this is the browser that wrote
 the post" - clear your browser data and the post becomes uneditable. That is the
 honest trade for collecting nothing, and the UI says so rather than hiding it.
 
+### Markdown editor
+
+`/new` and the edit page mount a toolbar, keyboard shortcuts (Ctrl/Cmd+B, I, K),
+and a live preview onto the plain `<textarea>`. The textarea keeps its name and
+value throughout, so with `editor.js` absent the form still submits exactly as
+before.
+
+The preview is rendered by the **server** (`POST /preview`), not by a Markdown
+library in the browser. Two renderers for one syntax inevitably drift — the
+preview shows one thing and the published post another — and the JS one would
+carry its own escaping rules to get wrong. Rendering through the same
+`render_markdown()` the real post uses means the preview *is* the output, and
+one security review covers both paths.
+
+The supported subset is headings, bold, italic, strikethrough, inline and
+fenced code, lists, blockquotes, links, and horizontal rules. **Images and raw
+HTML are deliberately unsupported**: the content filter reads text and cannot
+judge what sits behind a URL, so allowing `<img>` would be both a moderation
+and a privacy hole.
+
+### Reading modal
+
+Clicking a post title in the feed opens it in a scrollable overlay instead of
+navigating — a long post gets its own scroll container without costing the
+reader their place in the feed.
+
+Titles remain ordinary links to `/post/{id}`. The click is intercepted only for
+a plain left-click with fetch available, so middle-click, Cmd-click, "open in
+new tab", and crawlers all get the real page. While open, the URL is pushed to
+the permalink, so the address bar, Back button, and copy-link all behave as if
+it were a page.
+
 ### Scroll-loaded pagination
 
 The server renders page 1 plus a working numbered pager;

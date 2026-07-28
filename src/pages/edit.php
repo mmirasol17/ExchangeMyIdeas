@@ -143,7 +143,7 @@ if ($post === null) {
 
 $draft ??= ['title' => $post['title'], 'content' => $post['content']];
 
-render_head('Edit post - ExchangeMyIdeas', 'edit_post.js', ['noindex' => true]);
+render_head('Edit post - ExchangeMyIdeas', ['edit_post.js', 'editor.js'], ['noindex' => true]);
 ?>
 
   <div class="container container-narrow">
